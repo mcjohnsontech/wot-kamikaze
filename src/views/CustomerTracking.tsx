@@ -23,7 +23,7 @@ const CustomerTracking: React.FC = () => {
   const { token } = useParams<{ token: string }>();
   const [order, setOrder] = useState<any>(null);
   const [riderPosition, setRiderPosition] = useState<[number, number] | null>(null);
-  const [destination, setDestination] = useState<[number, number]>([6.5244, 3.3792]); // Default Lagos coords
+  const [destination] = useState<[number, number]>([6.5244, 3.3792]); // Default Lagos coords
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

@@ -59,7 +59,7 @@ const useUpdateOrderStatus = () => {
 
 const OrderCard: React.FC<{ order: typeof MOCK_ORDERS[0], handleNextStage: (id: string, currentStatus: string) => void }> = ({ order, handleNextStage }) => {
     const isCompleted = order.status === 'COMPLETED';
-    const isReady = order.status === 'READY';
+    // const isReady = order.status === 'READY';
     const isDispatched = order.status === 'DISPATCHED';
     const nextStatusIndex = STATUS_SEQUENCE.indexOf(order.status) + 1;
     const nextStatus = STATUS_SEQUENCE[nextStatusIndex];

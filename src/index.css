@@ -1,17 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  /* Dark Blue Theme */
-  --primary-dark: #0f172a;
-  --primary: #1e3a5f;
-  --primary-light: #2d5a8c;
-  --accent-blue: #3b82f6;
-  --accent-light: #60a5fa;
+  /* Modern Light Theme with Dark Blue Accents */
+  --primary-dark: #1e40af;
+  --primary: #2563eb;
+  --primary-light: #3b82f6;
+  --accent-blue: #0f172a;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --surface: #1e293b;
-  --surface-light: #334155;
+  --surface: #f8fafc;
+  --surface-light: #e2e8f0;
   
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -19,8 +18,8 @@
   line-height: 1.6;
   font-weight: 400;
 
-  color: #f1f5f9;
-  background-color: var(--primary-dark);
+  color: #0f172a;
+  background-color: #ffffff;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -41,24 +40,24 @@ html, body, #root {
 
 body {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--primary-dark) 0%, #1a2940 100%);
+  background: #ffffff;
   overflow-x: hidden;
 }
 
 a {
   font-weight: 600;
-  color: var(--accent-light);
+  color: var(--primary);
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
 a:hover {
-  color: #93c5fd;
+  color: var(--primary-dark);
   text-decoration: underline;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: #f1f5f9;
+  color: #0f172a;
   font-weight: 700;
 }
 
@@ -79,7 +78,7 @@ button {
 
 button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 8px 16px rgba(37, 99, 235, 0.2);
 }
 
 button:active:not(:disabled) {
@@ -93,12 +92,12 @@ button:disabled {
 
 input, textarea, select {
   border-radius: 8px;
-  border: 1px solid var(--surface-light);
+  border: 1px solid #e2e8f0;
   padding: 0.75em;
   font-size: 1em;
   font-family: inherit;
-  background-color: rgba(15, 23, 42, 0.5);
-  color: #f1f5f9;
+  background-color: #ffffff;
+  color: #0f172a;
   transition: all 0.3s ease;
 }
 
@@ -108,9 +107,9 @@ input::placeholder, textarea::placeholder {
 
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: var(--accent-blue);
-  background-color: rgba(15, 23, 42, 0.8);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--primary);
+  background-color: #f8fafc;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 ::-webkit-scrollbar {
@@ -119,14 +118,14 @@ input:focus, textarea:focus, select:focus {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--primary);
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--accent-blue);
+  background: var(--primary);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-light);
+  background: var(--primary-dark);
 }

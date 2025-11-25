@@ -52,37 +52,37 @@ const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-blue-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
+    <div className="min-h-screen bg-linear-to-br from-white via-blue-50 to-blue-100 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+      <div className="absolute bottom-20 right-10 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
       
       <div className="relative z-10 w-full max-w-md">
         {/* Logo/Header Area */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-linear-to-br from-blue-400 to-blue-600 shadow-lg mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-linear-to-br from-blue-500 to-blue-600 shadow-lg mb-4">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">WOT</h1>
-          <p className="text-slate-400 text-sm">Smarter Workflows, Faster Deliveries</p>
+          <h1 className="text-4xl font-bold text-slate-900 mb-2">WOT</h1>
+          <p className="text-slate-600 text-sm">Smarter Workflows, Faster Deliveries</p>
         </div>
 
         {/* Main Card */}
-        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-8 mb-6">
+        <div className="bg-white border border-blue-100 rounded-2xl shadow-lg p-8 mb-6">
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2">{title}</h2>
-            <p className="text-slate-300 text-sm">{subtitle}</p>
+            <h2 className="text-3xl font-bold text-slate-900 mb-2">{title}</h2>
+            <p className="text-slate-600 text-sm">{subtitle}</p>
           </div>
 
           {/* Error Alert */}
           {error && (
-            <div className="mb-6 p-4 rounded-xl bg-red-500/20 border border-red-500/50 flex items-start gap-3 animate-pulse">
-              <svg className="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3 animate-pulse">
+              <svg className="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
-              <span className="text-red-200 text-sm">{error}</span>
+              <span className="text-red-700 text-sm">{error}</span>
             </div>
           )}
 
@@ -90,9 +90,9 @@ const AuthPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Input */}
             <div>
-              <label className="block text-sm font-semibold text-slate-200 mb-2" htmlFor="email">
+              <label className="block text-sm font-semibold text-slate-900 mb-2" htmlFor="email">
                 <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                   Email Address
@@ -103,7 +103,7 @@ const AuthPage: React.FC = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:bg-white/10 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200"
+                className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg text-slate-900 placeholder-slate-400 focus:bg-blue-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                 placeholder="mama.ngozi@wot.ng"
                 required
               />
@@ -111,9 +111,9 @@ const AuthPage: React.FC = () => {
 
             {/* Password Input */}
             <div>
-              <label className="block text-sm font-semibold text-slate-200 mb-2" htmlFor="password">
+              <label className="block text-sm font-semibold text-slate-900 mb-2" htmlFor="password">
                 <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                   Password
@@ -124,7 +124,7 @@ const AuthPage: React.FC = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-500 focus:bg-white/10 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-200"
+                className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg text-slate-900 placeholder-slate-400 focus:bg-blue-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                 placeholder="••••••••"
                 required
               />
@@ -134,7 +134,7 @@ const AuthPage: React.FC = () => {
             <button
               type="submit"
               disabled={isProcessing}
-              className="w-full py-3 px-4 mt-8 bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 group"
+              className="w-full py-3 px-4 mt-8 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-lg shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 group"
             >
               {isProcessing ? (
                 <>
@@ -156,13 +156,13 @@ const AuthPage: React.FC = () => {
 
           {/* Divider */}
           <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-white/10"></div>
-            <span className="text-slate-400 text-xs">OR</span>
-            <div className="flex-1 h-px bg-white/10"></div>
+            <div className="flex-1 h-px bg-blue-100"></div>
+            <span className="text-slate-500 text-xs">OR</span>
+            <div className="flex-1 h-px bg-blue-100"></div>
           </div>
 
           {/* Toggle Auth Mode */}
-          <p className="text-center text-slate-300 text-sm">
+          <p className="text-center text-slate-600 text-sm">
             {isLogin ? "Don't have an account?" : "Already have an account?"}
             <button
               onClick={() => {
@@ -172,7 +172,7 @@ const AuthPage: React.FC = () => {
                 setPassword('');
               }}
               type="button"
-              className="ml-2 font-bold text-blue-400 hover:text-blue-300 transition-colors duration-200 inline-flex items-center gap-1 group"
+              className="ml-2 font-bold text-blue-600 hover:text-blue-700 transition-colors duration-200 inline-flex items-center gap-1 group"
             >
               {isLogin ? "Sign Up" : "Sign In"}
               <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -183,11 +183,11 @@ const AuthPage: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-slate-400 text-xs">
+        <p className="text-center text-slate-500 text-xs">
           By signing in, you agree to our
-          <a href="#" className="text-blue-400 hover:text-blue-300 mx-1">Terms of Service</a>
+          <a href="#" className="text-blue-600 hover:text-blue-700 mx-1">Terms of Service</a>
           and
-          <a href="#" className="text-blue-400 hover:text-blue-300 ml-1">Privacy Policy</a>
+          <a href="#" className="text-blue-600 hover:text-blue-700 ml-1">Privacy Policy</a>
         </p>
       </div>
     </div>

@@ -66,35 +66,35 @@ const OrderCard: React.FC<{ order: typeof MOCK_ORDERS[0], handleNextStage: (id: 
     
     // Status color mapping with emojis
     const statusColors: Record<string, { bg: string; border: string; icon: string }> = {
-        NEW: { bg: 'bg-yellow-500/20', border: 'border-yellow-500/50', icon: '⭐' },
-        PROCESSING: { bg: 'bg-blue-500/20', border: 'border-blue-500/50', icon: '⚙️' },
-        READY: { bg: 'bg-purple-500/20', border: 'border-purple-500/50', icon: '📦' },
-        DISPATCHED: { bg: 'bg-green-500/20', border: 'border-green-500/50', icon: '🚀' },
-        COMPLETED: { bg: 'bg-emerald-500/20', border: 'border-emerald-500/50', icon: '✅' },
+        NEW: { bg: 'bg-yellow-100', border: 'border-yellow-300', icon: '⭐' },
+        PROCESSING: { bg: 'bg-blue-100', border: 'border-blue-300', icon: '⚙️' },
+        READY: { bg: 'bg-purple-100', border: 'border-purple-300', icon: '📦' },
+        DISPATCHED: { bg: 'bg-green-100', border: 'border-green-300', icon: '🚀' },
+        COMPLETED: { bg: 'bg-emerald-100', border: 'border-emerald-300', icon: '✅' },
     };
 
     const statusConfig = statusColors[order.status] || { bg: 'bg-gray-500/20', border: 'border-gray-500/50', icon: '•' };
 
     return (
-        <div className={`p-4 bg-linear-to-br from-white/10 to-white/5 border ${statusConfig.border} rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 hover:border-opacity-100`}>
+        <div className={`p-4 bg-white border-2 ${statusConfig.border} rounded-xl shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105`}>
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <span className="text-2xl">{statusConfig.icon}</span>
                     <div>
-                        <p className="font-bold text-white text-lg">#{order.readable_id}</p>
-                        <p className="text-xs text-slate-400">{order.customer}</p>
+                        <p className="font-bold text-slate-900 text-lg">#{order.readable_id}</p>
+                        <p className="text-xs text-slate-600">{order.customer}</p>
                     </div>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusConfig.bg} backdrop-blur-sm`}>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusConfig.bg}`}>
                     {order.status}
                 </span>
             </div>
             
-            <p className="text-sm text-emerald-400 font-semibold mb-3">💰 {order.price}</p>
+            <p className="text-sm text-emerald-600 font-semibold mb-3">💰 {order.price}</p>
             
             {!isCompleted && nextStatus && (
                 <button 
-                    className="w-full text-sm text-blue-300 hover:text-blue-200 font-bold flex items-center justify-center gap-2 py-2 px-3 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg transition-all duration-200 group"
+                    className="w-full text-sm text-blue-600 hover:text-blue-700 font-bold flex items-center justify-center gap-2 py-2 px-3 bg-blue-100 hover:bg-blue-200 rounded-lg transition-all duration-200 group"
                     onClick={() => handleNextStage(order.id, order.status)}
                     disabled={false}
                 >
@@ -108,11 +108,11 @@ const OrderCard: React.FC<{ order: typeof MOCK_ORDERS[0], handleNextStage: (id: 
             )}
             
             {isCompleted && (
-                 <p className="text-xs text-emerald-400 font-bold flex items-center gap-1">✅ Completed</p>
+                 <p className="text-xs text-emerald-600 font-bold flex items-center gap-1">✅ Completed</p>
             )}
 
             {isDispatched && (
-                 <p className="mt-2 text-xs text-slate-400 italic">📱 {order.rider_phone}</p>
+                 <p className="mt-2 text-xs text-slate-600 italic">📱 {order.rider_phone}</p>
             )}
         </div>
     );
@@ -176,23 +176,23 @@ const SmeDashboard: React.FC = () => {
 
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-blue-900 p-4 md:p-8">
+        <div className="min-h-screen bg-linear-to-br from-white via-blue-50 to-blue-100 p-4 md:p-8">
             {/* Header */}
             <header className="mb-8">
-                <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6 md:p-8">
+                <div className="bg-white border border-blue-100 rounded-2xl shadow-md p-6 md:p-8">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 flex items-center gap-3">
+                            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-2 flex items-center gap-3">
                                 <span className="text-blue-400">⚡</span>
                                 WOT SME Dashboard
                             </h1>
-                            <p className="text-slate-300">Welcome, <span className="font-semibold text-blue-300">{user?.name || 'SME User'}</span></p>
+                            <p className="text-slate-600">Welcome, <span className="font-semibold text-blue-600">{user?.name || 'SME User'}</span></p>
                         </div>
                         
                         <div className="flex items-center gap-3 w-full md:w-auto flex-wrap md:flex-nowrap">
                             <Link
                                 to="/help"
-                                className="flex-1 md:flex-none bg-linear-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-slate-100 px-4 py-3 rounded-xl shadow-lg hover:shadow-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2"
+                                className="flex-1 md:flex-none bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-xl shadow-md hover:shadow-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -201,7 +201,7 @@ const SmeDashboard: React.FC = () => {
                             </Link>
                             <button
                                 onClick={handleCreateNewOrder}
-                                className="flex-1 md:flex-none bg-linear-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-4 py-3 rounded-xl shadow-lg hover:shadow-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 group"
+                                className="flex-1 md:flex-none bg-linear-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 text-white px-4 py-3 rounded-xl shadow-md hover:shadow-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 group"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -210,7 +210,7 @@ const SmeDashboard: React.FC = () => {
                             </button>
                             <button
                                 onClick={logout}
-                                className="flex-1 md:flex-none bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-3 rounded-xl shadow-lg hover:shadow-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2"
+                                className="flex-1 md:flex-none bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-3 rounded-xl shadow-md hover:shadow-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -225,15 +225,15 @@ const SmeDashboard: React.FC = () => {
             {/* Loading State */}
             {isLoading && (
                 <div className="flex flex-col items-center justify-center py-20">
-                    <div className="w-12 h-12 rounded-full border-4 border-slate-600 border-t-blue-400 animate-spin mb-4"></div>
-                    <p className="text-slate-400 text-lg">Loading your orders...</p>
+                    <div className="w-12 h-12 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin mb-4"></div>
+                    <p className="text-slate-600 text-lg">Loading your orders...</p>
                 </div>
             )}
             
             {/* Error State */}
             {error && (
-                <div className="backdrop-blur-xl bg-red-500/20 border border-red-500/50 rounded-2xl p-6 text-center">
-                    <p className="text-red-200 text-lg">⚠️ Error fetching orders. Please try again.</p>
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+                    <p className="text-red-700 text-lg">⚠️ Error fetching orders. Please try again.</p>
                 </div>
             )}
 
@@ -241,10 +241,10 @@ const SmeDashboard: React.FC = () => {
             {!isLoading && !error && (
                 <div>
                     <div className="mb-6">
-                        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                        <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                             <span>📊</span> Order Pipeline
                         </h2>
-                        <p className="text-slate-400 text-sm mt-1">Drag and manage your orders through each stage</p>
+                        <p className="text-slate-600 text-sm mt-1">Drag and manage your orders through each stage</p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 auto-rows-max">
@@ -259,14 +259,14 @@ const SmeDashboard: React.FC = () => {
                             const count = ordersByStatus[status]?.length || 0;
 
                             return (
-                                <div key={status} className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-all duration-300 min-h-96">
+                                <div key={status} className="bg-white border border-blue-100 rounded-2xl p-5 hover:bg-blue-50 transition-all duration-300 min-h-96">
                                     {/* Column Header */}
-                                    <div className="mb-4 pb-4 border-b border-white/10">
-                                        <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-2">
+                                    <div className="mb-4 pb-4 border-b border-blue-100">
+                                        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-2">
                                             <span className="text-2xl">{statusEmojis[status]}</span>
                                             {status}
                                         </h3>
-                                        <div className="inline-block px-3 py-1 rounded-full bg-blue-500/30 text-blue-200 text-sm font-semibold">
+                                        <div className="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold">
                                             {count} {count === 1 ? 'order' : 'orders'}
                                         </div>
                                     </div>
@@ -282,7 +282,7 @@ const SmeDashboard: React.FC = () => {
                                         ))}
                                         
                                         {(!ordersByStatus[status] || ordersByStatus[status].length === 0) && (
-                                          <p className="text-xs text-slate-500 italic text-center py-8">No orders in this stage</p>
+                                          <p className="text-xs text-slate-400 italic text-center py-8">No orders in this stage</p>
                                         )}
                                     </div>
                                 </div>
@@ -294,15 +294,15 @@ const SmeDashboard: React.FC = () => {
             
             {/* --- Rider Assignment Modal --- */}
             {isRiderModalOpen && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="backdrop-blur-xl bg-linear-to-br from-slate-800 to-slate-900 border border-white/20 rounded-2xl shadow-2xl max-w-sm w-full p-8 animate-in">
+                <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white border border-blue-100 rounded-2xl shadow-lg max-w-sm w-full p-8">
                         <div className="flex items-center gap-3 mb-6">
                             <span className="text-3xl">🎯</span>
-                            <h3 className="text-2xl font-bold text-white">Assign Rider</h3>
+                            <h3 className="text-2xl font-bold text-slate-900">Assign Rider</h3>
                         </div>
                         
-                        <p className="text-slate-300 mb-6">
-                            Order <span className="font-bold text-blue-300">
+                        <p className="text-slate-600 mb-6">
+                            Order <span className="font-bold text-blue-600">
                                 #
                                 {(Array.isArray(orders)
                                     ? orders.find((o) => o.id === selectedOrderId)?.readable_id
@@ -310,12 +310,12 @@ const SmeDashboard: React.FC = () => {
                             </span> is ready for dispatch.
                         </p>
                         
-                        <label className="block text-sm font-semibold text-slate-200 mb-3">Rider Phone Number</label>
+                        <label className="block text-sm font-semibold text-slate-900 mb-3">Rider Phone Number</label>
                         <input
                             type="tel"
                             value={riderPhoneInput}
                             onChange={(e) => setRiderPhoneInput(e.target.value)}
-                            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all"
+                            className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                             placeholder="+234..."
                             required
                         />
@@ -324,7 +324,7 @@ const SmeDashboard: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => setIsRiderModalOpen(false)}
-                                className="px-6 py-2 text-slate-300 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg transition-all"
+                                className="px-6 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-all"
                             >
                                 Cancel
                             </button>
@@ -332,7 +332,7 @@ const SmeDashboard: React.FC = () => {
                                 type="button"
                                 onClick={handleRiderAssignment}
                                 disabled={!riderPhoneInput || updateStatusMutation.isPending}
-                                className="px-6 py-2 bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 flex items-center gap-2"
+                                className="px-6 py-2 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-semibold transition-all disabled:opacity-50 flex items-center gap-2"
                             >
                                 {updateStatusMutation.isPending ? (
                                     <>
@@ -350,35 +350,35 @@ const SmeDashboard: React.FC = () => {
 
             {/* --- New Order Modal --- */}
             {isOrderModalOpen && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="backdrop-blur-xl bg-linear-to-br from-slate-800 to-slate-900 border border-white/20 rounded-2xl shadow-2xl max-w-sm w-full p-8">
+                <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white border border-blue-100 rounded-2xl shadow-lg max-w-sm w-full p-8">
                         <div className="flex items-center gap-3 mb-6">
-                            <span className="text-3xl">📝</span>
-                            <h3 className="text-2xl font-bold text-white">Create New Order</h3>
+                            <span className="text-3xl">📏</span>
+                            <h3 className="text-2xl font-bold text-slate-900">Create New Order</h3>
                         </div>
                         
-                        <p className="text-slate-400 mb-6">Enter customer details and order information to create a new order.</p>
+                        <p className="text-slate-600 mb-6">Enter customer details and order information to create a new order.</p>
                         
                         <div className="space-y-4 mb-6">
                             <input 
                                 type="text" 
                                 placeholder="Customer Name" 
-                                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all"
+                                className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                             />
                             <input 
                                 type="tel" 
                                 placeholder="Customer Phone" 
-                                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all"
+                                className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                             />
                             <textarea 
                                 placeholder="Delivery Address" 
                                 rows={3}
-                                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all resize-none"
+                                className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all resize-none"
                             />
                             <input 
                                 type="number" 
                                 placeholder="Order Price (₦)" 
-                                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all"
+                                className="w-full px-4 py-3 bg-white border border-blue-200 rounded-lg text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                             />
                         </div>
 
@@ -386,14 +386,14 @@ const SmeDashboard: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => setIsOrderModalOpen(false)}
-                                className="px-6 py-2 text-slate-300 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg transition-all"
+                                className="px-6 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-all"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="button"
                                 onClick={() => { setIsOrderModalOpen(false); alert('Order created successfully!'); queryClient.invalidateQueries({ queryKey: ['orders'] }); }}
-                                className="px-6 py-2 bg-linear-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-lg font-semibold transition-all flex items-center gap-2"
+                                className="px-6 py-2 bg-linear-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 text-white rounded-lg font-semibold transition-all flex items-center gap-2"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

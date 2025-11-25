@@ -25,14 +25,14 @@ const CsatSubmission: React.FC = () => {
 
     if (isSubmitted) {
         return (
-            <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-blue-900 flex items-center justify-center p-4">
-                <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 text-center max-w-sm">
-                    <div className="text-6xl mb-4 flex justify-center">✅</div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Thank You!</h1>
-                    <p className="text-lg text-slate-300 mb-6">
+        <div className="min-h-screen bg-linear-to-br from-white via-blue-50 to-blue-100 flex items-center justify-center p-4">
+            <div className="bg-white border border-blue-100 rounded-2xl p-8 text-center max-w-sm">
+                <div className="text-6xl mb-4 flex justify-center">✅</div>
+                <h1 className="text-3xl font-bold text-slate-900 mb-2">Thank You!</h1>
+                <p className="text-lg text-slate-600 mb-6">
                         Your feedback helps us improve delivery and build trust with our community.
                     </p>
-                    <div className="text-xs text-slate-400 bg-white/5 rounded-lg p-3">
+                    <div className="text-xs text-slate-600 bg-blue-50 rounded-lg p-3 border border-blue-200">
                         Token: {token}
                     </div>
                 </div>
@@ -41,21 +41,21 @@ const CsatSubmission: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-blue-900 flex items-center justify-center p-4">
-            <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 max-w-lg w-full">
+        <div className="min-h-screen bg-linear-to-br from-white via-blue-50 to-blue-100 flex items-center justify-center p-4">
+            <div className="bg-white border border-blue-100 rounded-2xl p-8 max-w-lg w-full">
                 {/* Header */}
                 <div className="text-center mb-8">
                     <div className="text-5xl mb-4">⭐</div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Rate Your Delivery</h1>
-                    <p className="text-slate-300">
+                    <h1 className="text-3xl font-bold text-slate-900 mb-2">Rate Your Delivery</h1>
+                    <p className="text-slate-600">
                         How would you rate the transparency and speed of your delivery experience?
                     </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Rating Selector */}
-                    <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
-                        <p className="text-slate-400 text-sm mb-4">Select a rating:</p>
+                    <div className="bg-blue-50 rounded-2xl p-6 border border-blue-200">
+                        <p className="text-slate-600 text-sm mb-4">Select a rating:</p>
                         <div className="flex justify-between gap-2">
                             {[
                                 { score: 5, emoji: '😍', label: 'Excellent' },
@@ -70,13 +70,13 @@ const CsatSubmission: React.FC = () => {
                                     onClick={() => setScore(s)}
                                     className={`flex-1 py-4 px-2 rounded-xl transition-all duration-200 transform ${
                                         score === s 
-                                            ? 'bg-linear-to-br from-blue-500 to-blue-600 scale-110 shadow-lg' 
-                                            : 'bg-white/10 hover:bg-white/20 border border-white/10'
+                                            ? 'bg-linear-to-br from-blue-500 to-blue-600 text-white scale-110 shadow-lg' 
+                                            : 'bg-blue-50 hover:bg-blue-100 border border-blue-200 text-slate-700'
                                     }`}
                                     title={label}
                                 >
                                     <span className="text-3xl block mb-1">{emoji}</span>
-                                    <span className="text-xs text-slate-300 font-semibold">{s}★</span>
+                                    <span className="text-xs font-semibold">{s}★</span>
                                 </button>
                             ))}
                         </div>
@@ -84,9 +84,9 @@ const CsatSubmission: React.FC = () => {
 
                     {/* Score Display */}
                     {score !== null && (
-                        <div className="text-center p-4 bg-blue-500/20 border border-blue-500/50 rounded-xl">
-                            <p className="text-slate-300 text-sm">Your Rating</p>
-                            <p className="text-white font-bold text-lg mt-1">
+                        <div className="text-center p-4 bg-blue-100 border border-blue-200 rounded-xl">
+                            <p className="text-slate-600 text-sm">Your Rating</p>
+                            <p className="text-slate-900 font-bold text-lg mt-1">
                                 {score === 5 ? '⭐ Excellent' : score === 4 ? '⭐ Good' : score === 3 ? '⭐ Okay' : score === 2 ? '⭐ Poor' : '⭐ Terrible'}
                             </p>
                         </div>
@@ -94,7 +94,7 @@ const CsatSubmission: React.FC = () => {
 
                     {/* Comment Section */}
                     <div>
-                        <label htmlFor="comment" className="block text-sm font-semibold text-slate-200 mb-2">
+                        <label htmlFor="comment" className="block text-sm font-semibold text-slate-900 mb-2">
                             📝 Additional Comments (Optional)
                         </label>
                         <textarea
@@ -102,7 +102,7 @@ const CsatSubmission: React.FC = () => {
                             rows={4}
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
-                            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all resize-none"
+                            className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all resize-none"
                             placeholder="Tell us what we did well, or how we can improve... (e.g., rider punctuality, packaging, communication)"
                         />
                     </div>
@@ -111,7 +111,7 @@ const CsatSubmission: React.FC = () => {
                     <button
                         type="submit"
                         disabled={score === null || isSubmitting}
-                        className="w-full bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 px-4 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
+                        className="w-full bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 px-4 rounded-xl text-lg font-bold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
                     >
                         {isSubmitting ? (
                             <>

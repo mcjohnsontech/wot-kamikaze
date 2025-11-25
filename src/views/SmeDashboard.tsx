@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-// We will mock the Tanstack Query hooks here for demonstration since the backend isn't ready.
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; 
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom'; // NEW IMPORT
 
 // --- MOCK API DATA & HOOKS (To be replaced by real hooks later) ---
 
@@ -11,6 +11,7 @@ const MOCK_ORDERS = [
     { id: '2', readable_id: 'WOT102', status: 'PROCESSING', customer: 'Obi N.', price: 'N15,000', rider_phone: null },
     { id: '3', readable_id: 'WOT103', status: 'READY', customer: 'Chidi M.', price: 'N5,200', rider_phone: '+2348001234567' },
     { id: '4', readable_id: 'WOT104', status: 'DISPATCHED', customer: 'Femi A.', price: 'N3,500', rider_phone: '+2348001234567' },
+    { id: '5', readable_id: 'WOT105', status: 'COMPLETED', customer: 'Yemi S.', price: 'N2,000', rider_phone: '+2348009876543' },
 ];
 const STATUS_SEQUENCE = ['NEW', 'PROCESSING', 'READY', 'DISPATCHED', 'COMPLETED', 'CANCELLED'];
 
@@ -63,7 +64,7 @@ const OrderCard: React.FC<{ order: typeof MOCK_ORDERS[0], handleNextStage: (id: 
     const nextStatusIndex = STATUS_SEQUENCE.indexOf(order.status) + 1;
     const nextStatus = STATUS_SEQUENCE[nextStatusIndex];
     
-    // Status color mapping
+    // Status color mapping with emojis
     const statusColors: Record<string, { bg: string; border: string; icon: string }> = {
         NEW: { bg: 'bg-yellow-500/20', border: 'border-yellow-500/50', icon: '⭐' },
         PROCESSING: { bg: 'bg-blue-500/20', border: 'border-blue-500/50', icon: '⚙️' },
@@ -95,6 +96,7 @@ const OrderCard: React.FC<{ order: typeof MOCK_ORDERS[0], handleNextStage: (id: 
                 <button 
                     className="w-full text-sm text-blue-300 hover:text-blue-200 font-bold flex items-center justify-center gap-2 py-2 px-3 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg transition-all duration-200 group"
                     onClick={() => handleNextStage(order.id, order.status)}
+                    disabled={false}
                 >
                     {nextStatus === 'READY' && '🎯 Assign Rider'}
                     {nextStatus === 'DISPATCHED' && '📍 Send Link'}
@@ -164,20 +166,14 @@ const SmeDashboard: React.FC = () => {
         setIsOrderModalOpen(true);
     };
 
-    // --- Fix lint errors: explicitly type items in order mapping functions ---
-
-    // TS types for order, for inferring from MOCK_ORDERS. This assumes MOCK_ORDERS is an array of OrderType.
-    type OrderType = typeof MOCK_ORDERS extends (infer T)[] ? T : never;
-
-    // Fix for: Property 'reduce' does not exist on type '{}' & Parameter 'order' implicitly has an 'any' type.
-    // If orders is always an array or undefined (never an object), (orders || []) is fine.
     const ordersByStatus = (Array.isArray(orders) ? orders : []).reduce(
-        (acc: Record<string, OrderType[]>, order: OrderType) => {
+        (acc: Record<string, typeof MOCK_ORDERS>, order: typeof MOCK_ORDERS[0]) => {
             acc[order.status] = acc[order.status] || [];
             acc[order.status].push(order);
             return acc;
         }, {}
     );
+
 
     return (
         <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-blue-900 p-4 md:p-8">
@@ -193,10 +189,19 @@ const SmeDashboard: React.FC = () => {
                             <p className="text-slate-300">Welcome, <span className="font-semibold text-blue-300">{user?.name || 'SME User'}</span></p>
                         </div>
                         
-                        <div className="flex items-center gap-3 w-full md:w-auto">
+                        <div className="flex items-center gap-3 w-full md:w-auto flex-wrap md:flex-nowrap">
+                            <Link
+                                to="/help"
+                                className="flex-1 md:flex-none bg-linear-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-slate-100 px-4 py-3 rounded-xl shadow-lg hover:shadow-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="hidden md:inline">Help</span>
+                            </Link>
                             <button
                                 onClick={handleCreateNewOrder}
-                                className="flex-1 md:flex-none bg-linear-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 group"
+                                className="flex-1 md:flex-none bg-linear-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-4 py-3 rounded-xl shadow-lg hover:shadow-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 group"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -205,7 +210,7 @@ const SmeDashboard: React.FC = () => {
                             </button>
                             <button
                                 onClick={logout}
-                                className="flex-1 md:flex-none bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2"
+                                className="flex-1 md:flex-none bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-3 rounded-xl shadow-lg hover:shadow-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -268,7 +273,7 @@ const SmeDashboard: React.FC = () => {
 
                                     {/* Orders */}
                                     <div className="space-y-3">
-                                        {ordersByStatus[status]?.map((order: OrderType) => (
+                                        {ordersByStatus[status]?.map((order: typeof MOCK_ORDERS[0]) => (
                                             <OrderCard 
                                                 key={order.id} 
                                                 order={order} 
@@ -300,7 +305,7 @@ const SmeDashboard: React.FC = () => {
                             Order <span className="font-bold text-blue-300">
                                 #
                                 {(Array.isArray(orders)
-                                    ? orders.find((o: OrderType) => o.id === selectedOrderId)?.readable_id
+                                    ? orders.find((o) => o.id === selectedOrderId)?.readable_id
                                     : '')}
                             </span> is ready for dispatch.
                         </p>

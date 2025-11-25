@@ -8,7 +8,8 @@ import SmeDashboard from './views/SmeDashboard';
 import RiderPwa from './views/RiderPwa';
 import CustomerTracking from './views/CustomerTracking';
 import CsatSubmission from './views/CsatSubmission';
-import AuthPage from './views/AuthPage'; // NEW IMPORT
+import AuthPage from './views/AuthPage';
+import HelpPage from './views/HelpPage'; // NEW IMPORT
 
 const queryClient = new QueryClient();
 
@@ -45,16 +46,22 @@ function App() {
                 element={<ProtectedRoute><SmeDashboard /></ProtectedRoute>} 
             />
 
-            {/* 3. Public Rider PWA (Token-based access, requires no general authentication) */}
+            {/* 3. Public Help/Guide Route */}
+            <Route 
+                path="/help" 
+                element={<ProtectedRoute><HelpPage /></ProtectedRoute>} 
+            />
+
+            {/* 4. Public Rider PWA (Token-based access, requires no general authentication) */}
             <Route path="/rider/:token" element={<RiderPwa />} />
 
-            {/* 4. Public Customer Tracking PWA (Token-based access, requires no general authentication) */}
+            {/* 5. Public Customer Tracking PWA (Token-based access, requires no general authentication) */}
             <Route path="/track/:token" element={<CustomerTracking />} />
             
-            {/* 5. Public CSAT Submission Route (Token-based submission) */}
+            {/* 6. Public CSAT Submission Route (Token-based submission) */}
             <Route path="/csat/:token" element={<CsatSubmission />} />
 
-            {/* 6. Default/Fallback Route */}
+            {/* 7. Default/Fallback Route */}
             {/* Redirects to /sme, which will then redirect to /auth if needed */}
             <Route path="/" element={<Navigate to="/sme" replace />} /> 
           </Routes>

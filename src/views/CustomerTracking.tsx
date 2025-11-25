@@ -64,63 +64,132 @@ const CustomerTracking: React.FC = () => {
     }
   }, [token]);
 
-  if (isLoading) return <div className="p-8 text-center text-blue-600">Loading Tracking Data...</div>;
-  if (error) return <div className="p-8 text-center text-red-600 font-bold">{error}</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-blue-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-full border-4 border-slate-600 border-t-blue-400 animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-300 text-lg">Loading tracking data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-blue-900 flex items-center justify-center p-4">
+        <div className="backdrop-blur-xl bg-red-500/20 border border-red-500/50 rounded-2xl p-8 text-center max-w-sm">
+          <span className="text-4xl mb-4 block">⚠️</span>
+          <p className="text-red-200 text-lg font-semibold">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   const centerPosition: [number, number] = riderPosition || destination;
 
   return (
-    <div className="p-4 sm:p-8 max-w-4xl mx-auto bg-gray-50 min-h-screen font-sans">
-      <h1 className="text-3xl font-bold mb-2 text-blue-700">Order #{order.readable_id}</h1>
-      <p className="text-lg text-gray-600 mb-6">Your order is currently en route.</p>
-
-      <div className="bg-white rounded-xl shadow-xl overflow-hidden h-96 mb-6">
-        {riderPosition && (
-          <MapContainer 
-            center={centerPosition} 
-            zoom={14} 
-            scrollWheelZoom={true}
-            style={{ height: '100%', width: '100%' }}
-          >
-            <TileLayer
-              attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            
-            {/* Rider Position (Live) */}
-            <Marker position={riderPosition} icon={riderIcon}>
-              <Popup>
-                Your Rider is here.
-              </Popup>
-            </Marker>
-
-            {/* Destination */}
-            <Marker position={destination} icon={destinationIcon}>
-              <Popup>
-                Your Delivery Destination.
-              </Popup>
-            </Marker>
-            
-            {/* Polyline (Mocking the route path) */}
-            <Polyline positions={[riderPosition, destination]} color="red" weight={3} />
-
-          </MapContainer>
-        )}
-        {!riderPosition && <div className="p-4 text-center text-gray-500">Awaiting Rider Location Signal...</div>}
+    <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-blue-900">
+      {/* Header */}
+      <div className="backdrop-blur-xl bg-white/10 border-b border-white/20 sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-3xl">📦</span>
+            <h1 className="text-3xl font-bold text-white">Order #{order.readable_id}</h1>
+          </div>
+          <p className="text-slate-400 flex items-center gap-2">
+            <span>📍</span> Your order is currently en route
+          </p>
+        </div>
       </div>
 
-      <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-300">
-        <h2 className="text-xl font-bold text-gray-800">
-            <i className="fa-solid fa-clock mr-2 text-yellow-600"></i> ETA:
-        </h2>
-        {/* FR3.2: Dynamic ETA (Mocked based on proximity) */}
-        <p className="text-2xl text-yellow-700 font-extrabold mt-1">
-            {riderPosition ? '5 - 10 Minutes' : 'Calculating...'}
-        </p>
-        <p className="text-sm text-gray-500 mt-2">Please be ready to receive your order and finalize payment ({order.price_total || 'COD'}).</p>
-      </div>
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Map Container */}
+        <div className="backdrop-blur-xl border border-white/20 rounded-2xl overflow-hidden shadow-2xl mb-6 h-96">
+          {riderPosition && (
+            <MapContainer 
+              center={centerPosition} 
+              zoom={14} 
+              scrollWheelZoom={true}
+              style={{ height: '100%', width: '100%' }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              
+              {/* Rider Position (Live) */}
+              <Marker position={riderPosition} icon={riderIcon}>
+                <Popup>
+                  Your Rider is here.
+                </Popup>
+              </Marker>
 
-      {/* CSAT Redirect Placeholder: Needs logic to redirect to /csat/:token upon COMPLETED message */}
+              {/* Destination */}
+              <Marker position={destination} icon={destinationIcon}>
+                <Popup>
+                  Your Delivery Destination.
+                </Popup>
+              </Marker>
+              
+              {/* Polyline (Mocking the route path) */}
+              <Polyline positions={[riderPosition, destination]} color="#3b82f6" weight={3} />
+
+            </MapContainer>
+          )}
+          {!riderPosition && (
+            <div className="h-full flex items-center justify-center text-slate-400 text-center">
+              <div>
+                <div className="w-8 h-8 rounded-full border-2 border-slate-600 border-t-blue-400 animate-spin mx-auto mb-2"></div>
+                <p>Awaiting rider location signal...</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ETA Card */}
+        <div className="backdrop-blur-xl bg-linear-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/50 rounded-2xl p-6 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-sm mb-1">Estimated Time of Arrival</p>
+              <h2 className="text-4xl font-bold text-white">
+                {riderPosition ? '5-10 min' : 'Calculating...'}
+              </h2>
+            </div>
+            <span className="text-5xl">⏱️</span>
+          </div>
+          <p className="text-slate-300 text-sm mt-4">
+            Please be ready to receive your order and finalize payment (COD).
+          </p>
+        </div>
+
+        {/* Status Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6">
+            <h3 className="text-white font-bold mb-2 flex items-center gap-2">
+              <span>📍</span> Delivery Location
+            </h3>
+            <p className="text-slate-300 text-sm leading-relaxed">{order.delivery_address}</p>
+          </div>
+
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6">
+            <h3 className="text-white font-bold mb-2 flex items-center gap-2">
+              <span>👤</span> Recipient
+            </h3>
+            <p className="text-slate-300 text-sm">{order.customer_name}</p>
+          </div>
+        </div>
+
+        {/* Info Box */}
+        <div className="backdrop-blur-xl bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 mt-6">
+          <p className="text-sm text-blue-200 flex items-start gap-2">
+            <span>💡</span>
+            <span>
+              Live tracking is active. You'll receive notifications when your rider arrives. Make sure your location pin is correct.
+            </span>
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

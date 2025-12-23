@@ -31,5 +31,5 @@ docs/
 .env.local
 .env.*.local
 .env.example
-DEPLY.md
+DEPLOY.md
 server/.env

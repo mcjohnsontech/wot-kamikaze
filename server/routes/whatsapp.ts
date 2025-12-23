@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { sendWhatsAppWithRetry } from '../services/whatsapp';
+import { sendWhatsAppWithRetry } from '../services/whatsapp.js';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 dotenv.config({ path: './server/.env' });

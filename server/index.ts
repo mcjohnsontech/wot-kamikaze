@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import whatsappRouter from './routes/whatsapp';
+import whatsappRouter from './routes/whatsapp.js';
 dotenv.config({ path: './server/.env' });
 
 // Get __dirname in ESM

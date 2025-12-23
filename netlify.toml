@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# 👇 Tell Netlify which env vars are safe to appear in build output
+[secrets_scan]
+  omit_keys = [
+    "NODE_ENV",
+    "PORT",
+    "FRONTEND_URL",
+    "VITE_SUPABASE_URL",
+    "VITE_SUPABASE_ANON_KEY"
+  ]

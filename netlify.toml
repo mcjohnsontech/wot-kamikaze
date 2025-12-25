@@ -5,12 +5,7 @@
 [build.environment]
   NODE_VERSION = "18"
 
-[secrets_scan]
-omit_paths = [
-  "server/**",
-    "docs/**",
-    "*.md"
-]
+
 
 # 👇 Tell Netlify which env vars are safe to appear in build output
 [secrets_scan]
@@ -21,3 +16,9 @@ omit_paths = [
     "VITE_SUPABASE_URL",
     "VITE_SUPABASE_ANON_KEY"
   ]
+  
+  omit_paths = [
+  "server/**",
+    "docs/**",
+    "*.md"
+]

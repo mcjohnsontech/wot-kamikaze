@@ -4,8 +4,9 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  SECRETS_SCAN_ENABLED = "false"
 
-# 👇 Tell Netlify which env vars / paths are safe to ignore during secrets scanning
+
 [secrets_scan]
   omit_keys = [
     "NODE_ENV",

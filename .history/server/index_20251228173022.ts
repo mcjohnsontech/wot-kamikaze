@@ -23,10 +23,6 @@ dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
 
-// Increase the limit for JSON bodies and URL-encoded data
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
 // Middleware - CORS
 const defaultLocalOrigins = ['http://localhost:5173', 'http://localhost:3000'];
 const envFrontend = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [];
@@ -45,7 +41,7 @@ app.use(cors({
     return callback(new Error(`CORS policy: origin ${origin} is not allowed`));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'x-sme-id'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   credentials: true,
   preflightContinue: false,
 }));

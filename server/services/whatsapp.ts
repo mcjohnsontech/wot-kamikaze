@@ -1,8 +1,10 @@
 import twilio from 'twilio';
 import dotenv from 'dotenv';
+import { createClient } from '@supabase/supabase-js';
+
 dotenv.config({ path: './server/.env' });
 
-// Initialize Twilio client
+// Initialize Twilio client (for fallback)
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioPhoneNumber = process.env.TWILIO_WHATSAPP_NUMBER;
@@ -11,13 +13,26 @@ if (!accountSid || !authToken || !twilioPhoneNumber) {
   throw new Error('Missing Twilio environment variables: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_NUMBER');
 }
 
-const client = twilio(accountSid, authToken);
+const twilioClient = twilio(accountSid, authToken);
+
+// Initialize Supabase for config lookup
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.warn('⚠️  SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not configured. Per-SME WhatsApp config lookup disabled.');
+}
+
+const supabase = supabaseUrl && supabaseServiceKey
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : null;
 
 export interface WhatsAppPayload {
   phone: string;
   message: string;
   orderId: string;
   mediaUrl?: string;
+  smeId?: string; // Add SME ID for config lookup
 }
 
 export interface WhatsAppResponse {
@@ -86,15 +101,43 @@ export async function sendWhatsAppMessage(
       };
     }
 
+    // Check for SME-specific WhatsApp config
+    let fromPhoneNumber = twilioPhoneNumber;
+    let useCustomProvider = false;
+
+    if (payload.smeId && supabase) {
+      try {
+        const { data: config, error: configError } = await supabase
+          .from('whatsapp_configs')
+          .select('*')
+          .eq('sme_id', payload.smeId)
+          .single();
+
+        if (!configError && config && config.is_connected) {
+          useCustomProvider = true;
+          if (config.provider === 'twilio' && config.provider_config?.twilioPhoneNumber) {
+            fromPhoneNumber = config.provider_config.twilioPhoneNumber;
+            console.log(`[WhatsApp] Using SME-specific Twilio config for ${payload.smeId}`);
+          } else if (config.provider === 'baileys' || config.provider === 'evolution') {
+            // TODO: Implement Baileys/Evolution provider when library is integrated
+            console.log(`[WhatsApp] ${config.provider} provider configured but not yet fully implemented. Falling back to Twilio.`);
+            useCustomProvider = false;
+          }
+        }
+      } catch (error) {
+        console.warn(`[WhatsApp] Error checking SME config for ${payload.smeId}, falling back to default Twilio`);
+      }
+    }
+
     // Send message via Twilio
-    const message = await client.messages.create({
-      from: `whatsapp:${twilioPhoneNumber}`,
+    const message = await twilioClient.messages.create({
+      from: `whatsapp:${fromPhoneNumber}`,
       to: `whatsapp:${formattedPhone}`,
       body: payload.message,
       ...(payload.mediaUrl && { mediaUrl: [payload.mediaUrl] }),
     });
 
-    console.log(`[WhatsApp] Message sent to ${formattedPhone} (SID: ${message.sid})`);
+    console.log(`[WhatsApp] Message sent to ${formattedPhone} (SID: ${message.sid}) from ${fromPhoneNumber}`);
 
     return {
       success: true,

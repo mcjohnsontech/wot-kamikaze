@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 import { useOrders } from '../hooks/useOrders';
 import { formatNaira, generateToken } from '../lib/utils';
 import { sendWhatsAppMessage, generateOrderStatusMessage } from '../lib/whatsapp';
-import { ChevronRight, Plus, HelpCircle, LogOut, Zap, TrendingUp } from 'lucide-react';
+import { ChevronRight, Plus, HelpCircle, LogOut, Zap, TrendingUp, FileText, Upload, MessageCircle } from 'lucide-react';
 
 const STATUS_SEQUENCE: Order['status'][] = [
   'NEW',
@@ -320,7 +320,28 @@ const SmeDashboard: React.FC = () => {
               <p className="text-sm text-gray-600">Welcome back, <span className="font-semibold text-gray-900">{user?.name || 'SME User'}</span></p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Link
+                to="/forms"
+                className="p-2 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                title="Manage Forms"
+              >
+                <FileText className="w-6 h-6" />
+              </Link>
+              <Link
+                to="/csv-import"
+                className="p-2 text-gray-600 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
+                title="Import CSV"
+              >
+                <Upload className="w-6 h-6" />
+              </Link>
+              <Link
+                to="/whatsapp"
+                className="p-2 text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors"
+                title="WhatsApp Config"
+              >
+                <MessageCircle className="w-6 h-6" />
+              </Link>
               <Link
                 to="/help"
                 className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"

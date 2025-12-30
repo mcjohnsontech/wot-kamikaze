@@ -11,6 +11,9 @@ import CsatSubmission from './views/CsatSubmission';
 import AuthPage from './views/AuthPage';
 import AuthCallbackPage from './views/AuthCallbackPage';
 import HelpPage from './views/HelpPage';
+import FormManagementPage from './views/FormManagementPage';
+import CSVImportPage from './views/CSVImportPage';
+import WhatsAppConnectPage from './views/WhatsAppConnectPage';
 
 const queryClient = new QueryClient();
 
@@ -56,16 +59,34 @@ function App() {
                 element={<ProtectedRoute><HelpPage /></ProtectedRoute>} 
             />
 
-            {/* 5. Public Rider PWA (Token-based access, requires no general authentication) */}
+            {/* 5. Form Management Route */}
+            <Route 
+                path="/forms" 
+                element={<ProtectedRoute><FormManagementPage /></ProtectedRoute>} 
+            />
+
+            {/* 6. CSV Import Route */}
+            <Route 
+                path="/csv-import" 
+                element={<ProtectedRoute><CSVImportPage /></ProtectedRoute>} 
+            />
+
+            {/* 7. WhatsApp Connect Route */}
+            <Route 
+                path="/whatsapp" 
+                element={<ProtectedRoute><WhatsAppConnectPage /></ProtectedRoute>} 
+            />
+
+            {/* 8. Public Rider PWA (Token-based access, requires no general authentication) */}
             <Route path="/rider/:token" element={<RiderPwa />} />
 
-            {/* 6. Public Customer Tracking PWA (Token-based access, requires no general authentication) */}
+            {/* 9. Public Customer Tracking PWA (Token-based access, requires no general authentication) */}
             <Route path="/track/:token" element={<CustomerTracking />} />
             
-            {/* 7. Public CSAT Submission Route (Token-based submission) */}
+            {/* 10. Public CSAT Submission Route (Token-based submission) */}
             <Route path="/csat/:token" element={<CsatSubmission />} />
 
-            {/* 8. Default/Fallback Route */}
+            {/* 11. Default/Fallback Route */}
             {/* Redirects to /sme, which will then redirect to /auth if needed */}
             <Route path="/" element={<Navigate to="/sme" replace />} /> 
           </Routes>

@@ -23,7 +23,7 @@ dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
 
-// Increase the limit for JSON bodies and URL-encoded data
+// Increase the limit for JSON bodies (since you're sending the CSV as a string/JSON)
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 

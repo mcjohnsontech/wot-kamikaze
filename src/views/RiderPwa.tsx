@@ -14,7 +14,11 @@ const RiderPwa: React.FC = () => {
   const [isTracking, setIsTracking] = useState(false);
   const [gpsStatus, setGpsStatus] = useState<'idle' | 'active' | 'error'>('idle');
   const [isCompleting, setIsCompleting] = useState(false);
+  const [otpRequested, setOtpRequested] = useState(false);
+  const [otpInput, setOtpInput] = useState('');
+  const [otpMessage, setOtpMessage] = useState<string | null>(null);
   const watchIdRef = useRef<number | null>(null);
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 
   // Start GPS tracking
@@ -57,24 +61,58 @@ const RiderPwa: React.FC = () => {
     setGpsStatus('idle');
   };
 
-  // Mark delivery as complete
+  // Mark delivery as complete with OTP verification
   const handleMarkDelivered = async () => {
     if (!order) return;
 
+    // If OTP hasn't been requested yet, generate and send it
+    if (!otpRequested) {
+      setIsCompleting(true);
+      try {
+        const resp = await fetch(`${API_BASE_URL}/orders/${order.id}/otp/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        const json = await resp.json();
+        if (!resp.ok) {
+          throw new Error(json.error || 'Failed to generate OTP');
+        }
+
+        setOtpRequested(true);
+        setOtpMessage('OTP sent to customer. Enter OTP to verify delivery.');
+        if (json.debugOtp) {
+          setOtpMessage((m) => `${m} (debug OTP: ${json.debugOtp})`);
+        }
+      } catch (err) {
+        alert('Failed to request OTP for delivery confirmation');
+      } finally {
+        setIsCompleting(false);
+      }
+
+      return;
+    }
+
+    // Verify provided OTP
     setIsCompleting(true);
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: 'COMPLETED', rider_lat: null, rider_lng: null })
-        .eq('id', order.id);
+      const resp = await fetch(`${API_BASE_URL}/orders/${order.id}/otp/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ otp: otpInput }),
+      });
 
-      if (error) throw error;
+      const json = await resp.json();
+      if (!resp.ok) {
+        throw new Error(json.error || 'OTP verification failed');
+      }
 
+      // Success — server marked order as COMPLETED
       stopTracking();
-      alert('✅ Delivery marked as complete!');
+      alert('✅ OTP verified. Delivery marked as complete!');
       navigate('/');
     } catch (err) {
-      alert('Failed to complete delivery');
+      alert(err instanceof Error ? err.message : 'OTP verification failed');
     } finally {
       setIsCompleting(false);
     }
@@ -216,15 +254,36 @@ const RiderPwa: React.FC = () => {
         </a>
       </div>
 
-      {/* Mark Delivered Button */}
-      <button
-        onClick={handleMarkDelivered}
-        disabled={isCompleting}
-        className="w-full px-6 py-4 bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 disabled:opacity-50 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all transform hover:scale-105 text-lg"
-      >
-        <CheckCircle className="w-6 h-6" />
-        {isCompleting ? 'Completing...' : '✅ Mark Delivered & Paid'}
-      </button>
+      {/* Delivery confirmation (OTP flow) */}
+      {!otpRequested ? (
+        <button
+          onClick={handleMarkDelivered}
+          disabled={isCompleting}
+          className="w-full px-6 py-4 bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 disabled:opacity-50 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all transform hover:scale-105 text-lg"
+        >
+          <CheckCircle className="w-6 h-6" />
+          {isCompleting ? 'Requesting OTP...' : '📨 Send OTP & Confirm Delivery'}
+        </button>
+      ) : (
+        <div className="space-y-3">
+          {otpMessage && (
+            <div className="text-sm text-slate-300 text-center">{otpMessage}</div>
+          )}
+          <input
+            value={otpInput}
+            onChange={(e) => setOtpInput(e.target.value)}
+            placeholder="Enter 4-digit OTP"
+            className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-lg"
+          />
+          <button
+            onClick={handleMarkDelivered}
+            disabled={isCompleting || otpInput.trim().length === 0}
+            className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 disabled:opacity-50 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all transform hover:scale-105 text-lg"
+          >
+            {isCompleting ? 'Verifying...' : '✅ Verify OTP & Complete Delivery'}
+          </button>
+        </div>
+      )}
 
       {/* Info */}
       <div className="mt-8 bg-slate-800 border border-slate-700 rounded-2xl p-4 text-center">

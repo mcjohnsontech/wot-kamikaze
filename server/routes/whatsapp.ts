@@ -6,15 +6,17 @@ dotenv.config({ path: './server/.env' });
 
 const router = Router();
 
-// Initialize Supabase client
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+// Initialize Supabase client using server-only service role key
+// NOTE: For security, server processes must use SUPABASE_SERVICE_ROLE_KEY
+// Frontend should continue to use `VITE_SUPABASE_ANON_KEY` (public, limited access)
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase environment variables');
+if (!supabaseUrl || !supabaseServiceRoleKey) {
+  throw new Error('Missing Supabase environment variables for server: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
 interface SendWhatsAppRequest {
   phone: string;

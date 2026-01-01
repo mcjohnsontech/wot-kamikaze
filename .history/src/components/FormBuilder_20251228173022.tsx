@@ -1,5 +1,35 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, GripVertical } from 'lucide-react';
+import {
+  Container,
+  Paper,
+  Title,
+  Text,
+  Group,
+  Stack,
+  TextInput,
+  Textarea,
+  Button,
+  ActionIcon,
+  Select,
+  Switch,
+  Divider,
+  ThemeIcon,
+  Box,
+  rem,
+  SimpleGrid,
+  Tooltip,
+} from '@mantine/core';
+import {
+  IconPlus,
+  IconTrash,
+  IconGripVertical,
+  IconChevronUp,
+  IconChevronDown,
+  IconSettings,
+  IconForms,
+  IconCheck,
+  IconDeviceFloppy,
+} from '@tabler/icons-react';
 
 interface FormField {
   field_key: string;
@@ -35,15 +65,17 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
   const addField = () => {
     const newField: FormField = {
       field_key: `field_${Date.now()}`,
-      label: 'New Field',
+      label: 'New Question',
       type: 'text',
       required: true,
     };
     setFields([...fields, newField]);
+    setEditingIndex(fields.length);
   };
 
   const removeField = (index: number) => {
     setFields(fields.filter((_, i) => i !== index));
+    if (editingIndex === index) setEditingIndex(null);
   };
 
   const updateField = (index: number, updates: Partial<FormField>) => {
@@ -52,7 +84,8 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
     setFields(updated);
   };
 
-  const moveField = (index: number, direction: 'up' | 'down') => {
+  const moveField = (index: number, direction: 'up' | 'down', e: React.MouseEvent) => {
+    e.stopPropagation();
     if ((direction === 'up' && index === 0) || (direction === 'down' && index === fields.length - 1)) {
       return;
     }
@@ -60,164 +93,232 @@ const FormBuilder: React.FC<FormBuilderProps> = ({
     const swapIndex = direction === 'up' ? index - 1 : index + 1;
     [updated[index], updated[swapIndex]] = [updated[swapIndex], updated[index]];
     setFields(updated);
+    if (editingIndex === index) setEditingIndex(swapIndex);
   };
 
   const handleSave = async () => {
-    if (!name.trim()) {
-      alert('Form name is required');
-      return;
-    }
+    if (!name.trim()) return;
     await onSave(name, description, fields);
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 text-white">
-        <h1 className="text-3xl font-bold mb-2">📋 Form Builder</h1>
-        <p className="text-blue-100">Create custom data collection forms for your orders</p>
-      </div>
+    <Container size="md" py="xl">
+      <Stack gap="xl">
+        {/* Header Hero */}
+        <Paper
+          p="xl"
+          radius="lg"
+          style={{
+            background: 'linear-gradient(135deg, var(--mantine-color-blue-7) 0%, var(--mantine-color-indigo-8) 100%)',
+            color: 'white',
+          }}
+        >
+          <Group justify="space-between">
+            <Box>
+              <Group gap="sm" mb={4}>
+                <ThemeIcon size="lg" radius="md" color="rgba(255,255,255,0.2)">
+                  <IconForms size={24} />
+                </ThemeIcon>
+                <Title order={1} size="h2">Form Builder</Title>
+              </Group>
+              <Text opacity={0.8} size="sm">Create custom data collection flows for your clients</Text>
+            </Box>
+          </Group>
+        </Paper>
 
-      {/* Form Metadata */}
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 space-y-4">
-        <div>
-          <label className="block text-sm font-semibold text-slate-300 mb-2">Form Name *</label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g., Cake Order Form"
-            className="w-full px-4 py-2 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-        </div>
+        {/* Form Metadata Section */}
+        <Paper withBorder p="xl" radius="lg" shadow="sm">
+          <Stack gap="md">
+            <Group gap="xs" mb="xs">
+              <IconSettings size={18} color="var(--mantine-color-blue-6)" />
+              <Text fw={700} tt="uppercase" size="xs" lts={1}>Form Identity</Text>
+            </Group>
+            <TextInput
+              label="Form Name"
+              placeholder="e.g., Wedding Cake Order Form"
+              required
+              value={name}
+              onChange={(e) => setName(e.currentTarget.value)}
+              radius="md"
+            />
+            <Textarea
+              label="Description"
+              placeholder="What should customers know about this form?"
+              value={description}
+              onChange={(e) => setDescription(e.currentTarget.value)}
+              radius="md"
+              autosize
+              minRows={2}
+            />
+          </Stack>
+        </Paper>
 
-        <div>
-          <label className="block text-sm font-semibold text-slate-300 mb-2">Description</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe what this form is used for..."
-            rows={2}
-            className="w-full px-4 py-2 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-        </div>
-      </div>
+        {/* Fields Editor Section */}
+        <Paper withBorder p="xl" radius="lg" shadow="sm">
+          <Group justify="space-between" mb="lg">
+            <Group gap="xs">
+              <IconPlus size={18} color="var(--mantine-color-blue-6)" />
+              <Text fw={700} tt="uppercase" size="xs" lts={1}>Questions ({fields.length})</Text>
+            </Group>
+          </Group>
 
-      {/* Fields Editor */}
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6">
-        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          📝 Form Fields ({fields.length})
-        </h2>
+          <Stack gap="sm">
+            {fields.map((field, index) => (
+              <Paper
+                key={field.field_key}
+                withBorder
+                radius="md"
+                p="md"
+                style={{
+                  borderColor: editingIndex === index ? 'var(--mantine-color-blue-5)' : undefined,
+                  transition: 'all 0.2s ease',
+                  backgroundColor: editingIndex === index ? 'var(--mantine-color-blue-light)' : 'transparent'
+                }}
+              >
+                <Group wrap="nowrap" gap="sm">
+                  {/* Reorder Controls */}
+                  <Stack gap={0} align="center">
+                    <ActionIcon 
+                      variant="subtle" 
+                      color="gray" 
+                      size="sm" 
+                      disabled={index === 0}
+                      onClick={(e) => moveField(index, 'up', e)}
+                    >
+                      <IconChevronUp size={14} />
+                    </ActionIcon>
+                    <IconGripVertical size={18} color="var(--mantine-color-gray-4)" />
+                    <ActionIcon 
+                      variant="subtle" 
+                      color="gray" 
+                      size="sm" 
+                      disabled={index === fields.length - 1}
+                      onClick={(e) => moveField(index, 'down', e)}
+                    >
+                      <IconChevronDown size={14} />
+                    </ActionIcon>
+                  </Stack>
 
-        <div className="space-y-3 mb-4">
-          {fields.map((field, index) => (
-            <div
-              key={field.field_key}
-              className={`bg-slate-700 border rounded-lg p-4 cursor-pointer transition-all ${
-                editingIndex === index ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-slate-600'
-              }`}
-              onClick={() => setEditingIndex(editingIndex === index ? null : index)}
-            >
-              <div className="flex items-center gap-3">
-                <GripVertical className="w-4 h-4 text-slate-500" />
-                <div className="flex-1">
-                  <p className="text-white font-semibold">{field.label}</p>
-                  <p className="text-xs text-slate-400">
-                    {field.type} • {field.required ? 'Required' : 'Optional'}
-                  </p>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeField(index);
-                  }}
-                  className="p-2 text-red-400 hover:bg-red-900/30 rounded"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
+                  {/* Field Header Summary */}
+                  <Box 
+                    style={{ flex: 1, cursor: 'pointer' }} 
+                    onClick={() => setEditingIndex(editingIndex === index ? null : index)}
+                  >
+                    <Group gap="xs">
+                      <Text fw={700} size="sm">{field.label || 'Untitled Question'}</Text>
+                      {field.required && <Badge size="xs" color="red" variant="dot">Required</Badge>}
+                    </Group>
+                    <Text size="xs" c="dimmed">{field.type.toUpperCase()}</Text>
+                  </Box>
 
-              {/* Field Editor (expanded) */}
-              {editingIndex === index && (
-                <div className="mt-4 pt-4 border-t border-slate-600 space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs font-semibold text-slate-300">Label</label>
-                      <input
+                  <Tooltip label="Delete Field">
+                    <ActionIcon 
+                      variant="light" 
+                      color="red" 
+                      onClick={(e) => { e.stopPropagation(); removeField(index); }}
+                    >
+                      <IconTrash size={16} />
+                    </ActionIcon>
+                  </Tooltip>
+                </Group>
+
+                {/* Expanded Editor Form */}
+                {editingIndex === index && (
+                  <Box mt="md" pt="md" style={{ borderTop: `${rem(1)} dashed var(--mantine-color-gray-3)` }}>
+                    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                      <TextInput
+                        label="Label / Question"
+                        size="sm"
                         value={field.label}
                         onChange={(e) => updateField(index, { label: e.target.value })}
-                        className="w-full px-2 py-1 bg-slate-900 border border-slate-600 text-white text-sm rounded"
                       />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-slate-300">Type</label>
-                      <select
+                      <Select
+                        label="Input Type"
+                        size="sm"
                         value={field.type}
-                        onChange={(e) => updateField(index, { type: e.target.value as any })}
-                        className="w-full px-2 py-1 bg-slate-900 border border-slate-600 text-white text-sm rounded"
+                        data={[
+                          { value: 'text', label: 'Short Text' },
+                          { value: 'textarea', label: 'Long Text' },
+                          { value: 'number', label: 'Number' },
+                          { value: 'email', label: 'Email' },
+                          { value: 'phone', label: 'Phone' },
+                          { value: 'date', label: 'Date' },
+                          { value: 'select', label: 'Dropdown' },
+                          { value: 'checkbox', label: 'Checkbox' },
+                        ]}
+                        onChange={(val) => updateField(index, { type: val as any })}
+                      />
+                    </SimpleGrid>
+
+                    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md" mt="sm">
+                      <TextInput
+                        label="Placeholder"
+                        size="sm"
+                        value={field.placeholder || ''}
+                        onChange={(e) => updateField(index, { placeholder: e.target.value })}
+                      />
+                      <TextInput
+                        label="Help Text"
+                        size="sm"
+                        value={field.help_text || ''}
+                        onChange={(e) => updateField(index, { help_text: e.target.value })}
+                      />
+                    </SimpleGrid>
+
+                    <Group mt="md" justify="space-between">
+                      <Switch
+                        label="Response Required"
+                        checked={field.required}
+                        onChange={(e) => updateField(index, { required: e.currentTarget.checked })}
+                        size="sm"
+                      />
+                      <Button 
+                        variant="subtle" 
+                        size="xs" 
+                        onClick={() => setEditingIndex(null)}
+                        leftSection={<IconCheck size={14}/>}
                       >
-                        <option>text</option>
-                        <option>number</option>
-                        <option>email</option>
-                        <option>phone</option>
-                        <option>date</option>
-                        <option>textarea</option>
-                        <option>select</option>
-                        <option>checkbox</option>
-                      </select>
-                    </div>
-                  </div>
+                        Done
+                      </Button>
+                    </Group>
+                  </Box>
+                )}
+              </Paper>
+            ))}
 
-                  <div>
-                    <label className="text-xs font-semibold text-slate-300">Placeholder</label>
-                    <input
-                      value={field.placeholder || ''}
-                      onChange={(e) => updateField(index, { placeholder: e.target.value })}
-                      className="w-full px-2 py-1 bg-slate-900 border border-slate-600 text-white text-sm rounded"
-                    />
-                  </div>
+            <Button
+              variant="dashed"
+              color="gray"
+              fullWidth
+              py="xl"
+              radius="md"
+              leftSection={<IconPlus size={18} />}
+              onClick={addField}
+              styles={{
+                label: { fontWeight: 700 }
+              }}
+            >
+              Add New Form Question
+            </Button>
+          </Stack>
+        </Paper>
 
-                  <div>
-                    <label className="text-xs font-semibold text-slate-300">Help Text</label>
-                    <input
-                      value={field.help_text || ''}
-                      onChange={(e) => updateField(index, { help_text: e.target.value })}
-                      className="w-full px-2 py-1 bg-slate-900 border border-slate-600 text-white text-sm rounded"
-                    />
-                  </div>
-
-                  <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={field.required}
-                      onChange={(e) => updateField(index, { required: e.target.checked })}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm">Required field</span>
-                  </label>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <button
-          onClick={addField}
-          className="w-full px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition-all"
+        {/* Save Action */}
+        <Button
+          size="xl"
+          radius="lg"
+          variant="gradient"
+          gradient={{ from: 'teal.6', to: 'green.8', deg: 90 }}
+          leftSection={<IconDeviceFloppy size={22} />}
+          loading={isLoading}
+          onClick={handleSave}
+          fullWidth
+          shadow="md"
         >
-          <Plus className="w-5 h-5" />
-          Add Field
-        </button>
-      </div>
-
-      {/* Save Button */}
-      <button
-        onClick={handleSave}
-        disabled={isLoading}
-        className="w-full px-6 py-4 bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 disabled:opacity-50 text-white rounded-xl font-bold transition-all text-lg"
-      >
-        {isLoading ? '💾 Saving...' : '✅ Save Form'}
-      </button>
-    </div>
+          {isLoading ? 'Saving Changes...' : 'Save Form Schema'}
+        </Button>
+      </Stack>
+    </Container>
   );
 };
 

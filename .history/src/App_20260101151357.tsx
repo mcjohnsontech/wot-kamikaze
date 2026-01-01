@@ -37,29 +37,13 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>;
 };
 
-// --- Root Route Wrapper ---
-// Shows landing page if not authenticated, redirects to dashboard if authenticated
-const RootRoute: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
-  
-  if (isLoading) {
-    return <div className="text-center p-10 text-xl text-blue-600">Loading Application...</div>;
-  }
-
-  if (isAuthenticated) {
-    return <Navigate to="/sme" replace />;
-  }
-  
-  return <LandingPage />;
-};
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider> {/* Wrap the entire application with the Auth Provider */}
         <Router>
           <Routes>
-            <Route path="/" element={<RootRoute />} />
+            <Route path="/" element={<LandingPage} />
             {/* 1. Authentication Route (Public) */}
             <Route path="/auth" element={<AuthPage />} />
 
@@ -110,6 +94,10 @@ function App() {
             
             {/* 10. Public CSAT Submission Route (Token-based submission) */}
             <Route path="/csat/:token" element={<CsatSubmission />} />
+
+            {/* 11. Default/Fallback Route */}
+            {/* Redirects to /sme, which will then redirect to /auth if needed */}
+            <Route path="/" element={<Navigate to="/sme" replace />} /> 
           </Routes>
         </Router>
       </AuthProvider>

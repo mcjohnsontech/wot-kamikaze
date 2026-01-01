@@ -59,7 +59,7 @@ function App() {
       <AuthProvider> {/* Wrap the entire application with the Auth Provider */}
         <Router>
           <Routes>
-            <Route path="/" element={<RootRoute />} />
+            <Route path="/" element={<LandingPage />} />
             {/* 1. Authentication Route (Public) */}
             <Route path="/auth" element={<AuthPage />} />
 
@@ -110,6 +110,10 @@ function App() {
             
             {/* 10. Public CSAT Submission Route (Token-based submission) */}
             <Route path="/csat/:token" element={<CsatSubmission />} />
+
+            {/* 11. Default/Fallback Route */}
+            {/* Redirects to /sme, which will then redirect to /auth if needed */}
+            <Route path="/" element={<Navigate to="/sme" replace />} /> 
           </Routes>
         </Router>
       </AuthProvider>

@@ -26,10 +26,10 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 const statusConfig: Record<Order['status'], { icon: any; color: string; nextLabel: string }> = {
   NEW: { icon: IconClipboardList, color: 'blue', nextLabel: 'Start Processing' },
   PROCESSING: { icon: IconPackage, color: 'blue', nextLabel: 'Mark Ready' },
-  READY: { icon: IconTruckDelivery, color: 'blue', nextLabel: 'Assign Rider' },
-  DISPATCHED: { icon: IconBell, color: 'blue', nextLabel: 'Mark Complete' },
+  READY: { icon: IconTruckDelivery, color: 'grape', nextLabel: 'Assign Rider' },
+  DISPATCHED: { icon: IconBell, color: 'green', nextLabel: 'Mark Complete' },
   COMPLETED: { icon: IconCheck, color: 'blue', nextLabel: 'Completed' },
-  CANCELLED: { icon: IconAlertCircle, color: 'blue', nextLabel: 'Cancelled' },
+  CANCELLED: { icon: IconAlertCircle, color: 'gray', nextLabel: 'Cancelled' },
 };
 
 interface OrderCardProps {
@@ -68,7 +68,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onNextStage, isLoading }) 
       <Stack gap="xs" mb="lg">
         <Group justify="space-between">
           <Text size="xs" c="dimmed" fw={600} tt="uppercase">Amount</Text>
-          <Text fw={800} c="blue" size="lg">{formatNaira(order.price_total)}</Text>
+          <Text fw={800} c="teal" size="lg">{formatNaira(order.price_total)}</Text>
         </Group>
         
         {order.delivery_address && (
@@ -94,7 +94,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onNextStage, isLoading }) 
       )}
 
       {order.status === 'COMPLETED' && (
-        <Button fullWidth disabled variant="light" color="blue" radius="md" leftSection={<IconCheck size={16}/>}>
+        <Button fullWidth disabled variant="light" color="teal" radius="md" leftSection={<IconCheck size={16}/>}>
           Delivered
         </Button>
       )}

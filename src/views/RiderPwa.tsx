@@ -18,6 +18,7 @@ import {
   Box,
   Divider,
   rem,
+  PinInput,
 } from '@mantine/core';
 import {
   IconPower,
@@ -81,6 +82,10 @@ const RiderPwa: React.FC = () => {
     setGpsStatus('idle');
   };
 
+  const [isDelivered, setIsDelivered] = useState(false);
+
+  // ... (startTracking/stopTracking)
+
   // OTP flow
   const handleMarkDelivered = async () => {
     if (!order) return;
@@ -88,6 +93,7 @@ const RiderPwa: React.FC = () => {
 
     try {
       if (!otpRequested) {
+        // ... (otp generation logic)
         const resp = await fetch(`${API_BASE_URL}/orders/${order.id}/otp/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -108,8 +114,7 @@ const RiderPwa: React.FC = () => {
         if (!resp.ok) throw new Error('Invalid OTP');
 
         stopTracking();
-        alert('✅ Delivery completed!');
-        navigate('/');
+        setIsDelivered(true);
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Action failed');
@@ -121,6 +126,23 @@ const RiderPwa: React.FC = () => {
   useEffect(() => {
     return () => { if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current); };
   }, []);
+
+  if (isDelivered) {
+    return (
+      <Center mih="100vh" bg="dark.8" p="xl">
+        <Paper p="xl" radius="lg" bg="dark.7" style={{ textAlign: 'center' }}>
+          <ThemeIcon size={80} radius="xl" color="green" variant="light" mb="lg">
+            <IconCheck size={40} />
+          </ThemeIcon>
+          <Title order={2} c="white" mb="sm">Delivery Confirmed!</Title>
+          <Text c="dimmed">Great job! The order has been marked as completed.</Text>
+          <Button mt="xl" fullWidth onClick={() => window.close()} variant="subtle" color="gray">
+            Close App
+          </Button>
+        </Paper>
+      </Center>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -174,15 +196,18 @@ const RiderPwa: React.FC = () => {
           <Paper withBorder p="lg" radius="lg" bg="dark.7">
             <Stack gap="md">
               <Group wrap="nowrap" align="flex-start">
-                <ThemeIcon variant="light" color="blue" radius="md"><IconUser size={18}/></ThemeIcon>
+                <ThemeIcon variant="light" color="blue" radius="md"><IconUser size={18} /></ThemeIcon>
                 <Box>
                   <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Customer</Text>
                   <Text fw={700} c="white">{order.customer_name}</Text>
+                  <Text size="sm" c="blue.2" component="a" href={`tel:${order.customer_phone}`} style={{ textDecoration: 'none' }}>
+                    {order.customer_phone}
+                  </Text>
                 </Box>
               </Group>
 
               <Group wrap="nowrap" align="flex-start">
-                <ThemeIcon variant="light" color="red" radius="md"><IconMapPin size={18}/></ThemeIcon>
+                <ThemeIcon variant="light" color="red" radius="md"><IconMapPin size={18} /></ThemeIcon>
                 <Box>
                   <Text size="xs" c="dimmed" tt="uppercase" fw={700}>Address</Text>
                   <Text size="sm" c="white" fw={500}>{order.delivery_address}</Text>
@@ -211,8 +236,8 @@ const RiderPwa: React.FC = () => {
                 <IconGps size={20} color="var(--mantine-color-blue-4)" />
                 <Text fw={700} c="white">GPS Broadcast</Text>
               </Group>
-              <Badge 
-                color={gpsStatus === 'active' ? 'green' : gpsStatus === 'error' ? 'red' : 'gray'} 
+              <Badge
+                color={gpsStatus === 'active' ? 'green' : gpsStatus === 'error' ? 'red' : 'gray'}
                 variant="dot"
               >
                 {gpsStatus.toUpperCase()}
@@ -224,8 +249,8 @@ const RiderPwa: React.FC = () => {
               size="lg"
               radius="md"
               variant="gradient"
-              gradient={isTracking 
-                ? { from: 'red.6', to: 'red.8' } 
+              gradient={isTracking
+                ? { from: 'red.6', to: 'red.8' }
                 : { from: 'teal.6', to: 'green.7' }
               }
               leftSection={<IconPower size={20} />}
@@ -276,18 +301,21 @@ const RiderPwa: React.FC = () => {
                     <IconShieldLock size={18} color="var(--mantine-color-blue-4)" />
                     <Text fw={700} c="white" size="sm">Verify Delivery</Text>
                   </Group>
-                  
+
                   {otpMessage && <Text size="xs" c="blue.2" ta="center" fw={500}>{otpMessage}</Text>}
-                  
-                  <TextInput
-                    size="lg"
-                    radius="md"
-                    placeholder="Enter 4-digit code"
-                    value={otpInput}
-                    onChange={(e) => setOtpInput(e.target.value)}
-                    styles={{ input: { textAlign: 'center', fontSize: rem(24), fontWeight: 800, letterSpacing: rem(4) } }}
-                  />
-                  
+
+                  <Group justify="center" my="md">
+                    <PinInput
+                      length={4}
+                      size="xl"
+                      type="number"
+                      placeholder="○"
+                      value={otpInput}
+                      onChange={setOtpInput}
+                      autoFocus
+                    />
+                  </Group>
+
                   <Button
                     size="lg"
                     radius="md"

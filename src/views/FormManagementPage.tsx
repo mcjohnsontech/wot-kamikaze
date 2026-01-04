@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import FormBuilder from '../components/FormBuilder';
 import {
   Container,
   Paper,
@@ -8,312 +7,227 @@ import {
   Text,
   Group,
   Stack,
-  Badge,
-  Loader,
-  Center,
-  Alert,
   Button,
-  SimpleGrid,
-  ThemeIcon,
-  ActionIcon,
-  Box,
+  Switch,
+  LoadingOverlay,
+  Badge,
   rem,
   Divider,
-  Tooltip,
+  ThemeIcon,
+  Center,
 } from '@mantine/core';
 import AuthHeader from '../components/AuthHeader';
-import {
-  IconEdit,
-  IconTrash,
-  IconPlus,
-  IconArrowLeft,
-  IconFileText,
-  IconCalendar,
-  IconAlertCircle,
-  IconLayersIntersect,
-} from '@tabler/icons-react';
+import { IconDeviceFloppy, IconSettings } from '@tabler/icons-react';
 
-interface FormField {
-  field_key: string;
-  label: string;
-  type: 'text' | 'number' | 'select' | 'checkbox' | 'textarea' | 'email' | 'phone' | 'date';
-  required: boolean;
-  placeholder?: string;
-  help_text?: string;
-  options?: Array<{ label: string; value: string }>;
-  validation?: any;
-  logic?: any;
-}
-
-interface FormSchema {
-  id: string;
-  name: string;
-  description?: string;
-  brand_color?: string;
-  version: number;
-  is_active: boolean;
-  created_at: string;
-  fields?: FormField[];
-}
+// Define the available optional fields matching the database/form_data requirement
+const OPTIONAL_FIELDS = [
+  { key: 'email', label: 'Customer Email', type: 'email', description: 'Collect customer email address' },
+  { key: 'alt_phone', label: 'Alternative Phone', type: 'phone', description: 'Backup contact number' },
+  { key: 'landmark', label: 'Nearest Landmark', type: 'text', description: 'Helpful for locating the address' },
+  { key: 'delivery_time', label: 'Preferred Delivery Time', type: 'text', description: 'When the customer wants it delivered' },
+  { key: 'payment_method', label: 'Payment Method', type: 'select', description: 'Cash, Transfer, or POS' },
+  { key: 'item_desc', label: 'Item Description', type: 'textarea', description: 'Details about the package content' },
+  { key: 'quantity', label: 'Quantity', type: 'number', description: 'Number of items' },
+  { key: 'notes', label: 'Delivery Notes', type: 'textarea', description: 'Extra instructions for the rider' },
+];
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const FormManagementPage: React.FC = () => {
   const { user } = useAuth();
-  const [forms, setForms] = useState<FormSchema[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isFetchingDetails, setIsFetchingDetails] = useState(false);
-  const [editingForm, setEditingForm] = useState<FormSchema | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Store the ID of the default form to update it, rather than creating new ones
+  const [defaultFormId, setDefaultFormId] = useState<string | null>(null);
+
+  // State for which fields are active
+  const [activeFields, setActiveFields] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
-    fetchForms();
+    fetchDefaultForm();
   }, [user?.id]);
 
-  const fetchForms = async () => {
-    if (!user?.id) return;
+  if (!user) return null;
+
+  const fetchDefaultForm = async () => {
     try {
       setIsLoading(true);
+      const token = localStorage.getItem('wot_auth_token');
       const response = await fetch(`${API_BASE_URL}/forms`, {
-        headers: { 'x-sme-id': user.id },
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-sme-id': user.id
+        },
       });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
       const json = await response.json();
-      if (json.success) setForms(json.schemas || []);
+
+      const schemas = json.schemas || [];
+      // Find a form named "Default Order Form" or take the first one
+      const existingForm = schemas.find((f: { name: string; id: string; fields: any[] }) => f.name === 'Default Order Form') || schemas[0];
+
+      if (existingForm) {
+        setDefaultFormId(existingForm.id);
+
+        // Parse the existing fields to set active state
+        const currentActive: Record<string, boolean> = {};
+        if (existingForm.fields && Array.isArray(existingForm.fields)) {
+          existingForm.fields.forEach((field: any) => {
+            // If the field key exists in our OPTIONAL_FIELDS, mark it as true
+            if (OPTIONAL_FIELDS.some(opt => opt.key === field.field_key)) {
+              currentActive[field.field_key] = true;
+            }
+          });
+        }
+        setActiveFields(currentActive);
+      }
     } catch (error) {
-      console.error('Failed to fetch forms:', error);
+      console.error('Failed to fetch form config:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleEditClick = async (formId: string) => {
-    try {
-      setIsFetchingDetails(true);
-      const response = await fetch(`${API_BASE_URL}/forms/${formId}`, {
-        headers: { 'x-sme-id': user?.id || '' },
-      });
-      const json = await response.json();
-      if (json.success) {
-        setEditingForm(json.schema);
-      }
-    } catch (error) {
-      console.error("Error loading form:", error);
-    } finally {
-      setIsFetchingDetails(false);
-    }
+  const toggleField = (key: string) => {
+    setActiveFields(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
   };
 
-  const handleSaveForm = async (name: string, description: string, fields: FormField[], brandColor: string) => {
+  const handleSaveConfig = async () => {
     if (!user?.id) return;
     setIsSaving(true);
     try {
-      const method = editingForm ? 'PUT' : 'POST';
-      const endpoint = editingForm ? `/forms/${editingForm.id}` : '/forms';
+      const token = localStorage.getItem('wot_auth_token');
+
+      // Construct the fields array based on active toggles
+      // We only include the optional fields that are ACTIVE
+      // The fixed compulsory fields are handled by the dashboard UI automatically and don't need to be in this list
+      // BUT for the sake of the API expecting a schema, we'll send the active optional ones.
+
+      const fieldsToSave = OPTIONAL_FIELDS
+        .filter(opt => activeFields[opt.key])
+        .map(opt => ({
+          field_key: opt.key,
+          label: opt.label,
+          type: opt.type,
+          required: false, // Optional fields are... optional
+          options: opt.key === 'payment_method' ? [
+            { label: 'Cash', value: 'cash' },
+            { label: 'Transfer', value: 'transfer' },
+            { label: 'POS', value: 'pos' }
+          ] : []
+        }));
+
+      const body = {
+        name: 'Default Order Form',
+        description: 'Standard delivery form with customized optional fields',
+        brand_color: '#3b82f6',
+        fields: fieldsToSave,
+        is_active: true
+      };
+
+      const method = defaultFormId ? 'PUT' : 'POST';
+      const endpoint = defaultFormId ? `/forms/${defaultFormId}` : '/forms';
 
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method,
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
           'x-sme-id': user.id,
         },
-        body: JSON.stringify({ name, description, fields, brand_color: brandColor }),
+        body: JSON.stringify(body),
       });
 
       const json = await response.json();
       if (json.success) {
-        setEditingForm(null);
-        setIsCreating(false);
-        fetchForms();
+        // If we just created it, save the ID
+        if (!defaultFormId && json.schema?.id) {
+          setDefaultFormId(json.schema.id);
+        }
+        alert('Form configuration saved successfully!');
+      } else {
+        alert('Failed to save configuration.');
       }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred while saving.');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDeleteForm = async (formId: string) => {
-    if (!user?.id || !window.confirm('Delete this form? Previous responses will be hidden.')) return;
-    try {
-      await fetch(`${API_BASE_URL}/forms/${formId}`, {
-        method: 'DELETE',
-        headers: { 'x-sme-id': user.id },
-      });
-      fetchForms();
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  if (isCreating || editingForm) {
-    return (
-      <Container size="lg" py="xl">
-        <AuthHeader title={editingForm ? editingForm.name : 'Create Form'} />
-        <Button
-          variant="subtle"
-          color="gray"
-          leftSection={<IconArrowLeft size={18} />}
-          onClick={() => { setIsCreating(false); setEditingForm(null); }}
-          mb="xl"
-        >
-          Back to Dashboard
-        </Button>
-        
-        <FormBuilder
-          initialName={editingForm?.name}
-          initialDescription={editingForm?.description}
-          initialFields={editingForm?.fields}
-          initialColor={editingForm?.brand_color}
-          onSave={handleSaveForm}
-          isLoading={isSaving}
-        />
-      </Container>
-    );
-  }
-
   return (
-    <Container size="xl" py="xl">
-      <Stack gap="xl">
-        {/* Page Header */}
-        <Paper
-          withBorder
-          p="xl"
-          radius="lg"
-          shadow="sm"
-          bg="var(--mantine-color-body)"
-        >
-          <Group justify="space-between">
-            <Box>
-              <Group gap="sm">
-                <ThemeIcon size="xl" radius="md" variant="light" color="blue">
-                  <IconFileText size={24} />
-                </ThemeIcon>
-                <Title order={1} size="h2" fw={900}>Custom Forms</Title>
-              </Group>
-              <Text c="dimmed" mt="xs">
-                Design and manage bespoke data collection flows for your clients.
-              </Text>
-            </Box>
-            <Button
-              size="lg"
-              radius="md"
-              leftSection={<IconPlus size={20} />}
-              onClick={() => setIsCreating(true)}
-            >
-              Create New Form
-            </Button>
-          </Group>
-        </Paper>
+    <Container size="md" py="xl">
+      <AuthHeader title="Form Settings" />
 
-        {/* Dashboard Content */}
-        {isLoading ? (
-          <Center py={100}>
-            <Stack align="center" gap="xs">
-              <Loader size="lg" />
-              <Text fw={700} c="dimmed">Loading your forms...</Text>
-            </Stack>
-          </Center>
-        ) : forms.length === 0 ? (
-          <Paper
-            withBorder
-            p={100}
-            radius="lg"
-            style={{ borderStyle: 'dashed' }}
-            bg="transparent"
-          >
-            <Stack align="center" gap="md">
-              <ThemeIcon variant="light" size={80} radius="xl" color="gray">
-                <IconPlus size={40} />
-              </ThemeIcon>
-              <Box ta="center">
-                <Title order={3} c="gray.7">No forms found</Title>
-                <Text c="dimmed">Start by creating a form to collect customer requirements.</Text>
-              </Box>
-              <Button variant="outline" onClick={() => setIsCreating(true)}>
-                Build your first form
-              </Button>
-            </Stack>
-          </Paper>
-        ) : (
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
-            {forms.map((form) => {
-              const typedForm = form as FormSchema;
-              return (
-              <Paper
-                key={typedForm.id}
-                withBorder
-                radius="lg"
-                p="lg"
-                shadow="xs"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  transition: 'transform 0.2s ease, border-color 0.2s ease',
-                }}
-              >
-                {/* Visual Accent Stripe */}
-                <Box
-                  h={6}
-                  mb="md"
-                  style={{
-                    backgroundColor: typedForm.brand_color || 'var(--mantine-color-blue-filled)',
-                    borderRadius: rem(10)
-                  }}
+      <Paper p="xl" radius="lg" withBorder shadow="sm" pos="relative">
+        <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+
+        <Group justify="space-between" mb="xl">
+          <div>
+            <Title order={3}>Customize Delivery Form</Title>
+            <Text c="dimmed">Enable the fields you want to appear on your order creation form.</Text>
+          </div>
+          <ThemeIcon size={40} radius="md" variant="light" color="blue">
+            <IconSettings size={22} />
+          </ThemeIcon>
+        </Group>
+
+        <Divider mb="lg" label="Compulsory Fields (Always Visible)" labelPosition="center" />
+
+        <Group gap="sm" mb="xl" justify="center">
+          {['Customer Name', 'Phone Number', 'Delivery Address', 'Total Price'].map(field => (
+            <Badge key={field} size="lg" variant="filled" color="gray" leftSection={<IconDeviceFloppy size={12} />}>
+              {field}
+            </Badge>
+          ))}
+        </Group>
+
+        <Divider mb="lg" label="Optional Fields (Toggle On/Off)" labelPosition="center" />
+
+        <Stack gap="lg">
+          {OPTIONAL_FIELDS.map((field) => (
+            <Paper key={field.key} withBorder p="md" radius="md" style={{ borderColor: activeFields[field.key] ? 'var(--mantine-color-blue-3)' : undefined }}>
+              <Group justify="space-between">
+                <div>
+                  <Text fw={700}>{field.label}</Text>
+                  <Text size="sm" c="dimmed">{field.description}</Text>
+                </div>
+                <Switch
+                  size="lg"
+                  onLabel="ON"
+                  offLabel="OFF"
+                  checked={!!activeFields[field.key]}
+                  onChange={() => toggleField(field.key)}
                 />
+              </Group>
+            </Paper>
+          ))}
+        </Stack>
 
-                <Group justify="space-between" align="flex-start" mb="xs">
-                  <Title order={4} lineClamp={1} style={{ flex: 1 }}>{typedForm.name}</Title>
-                  {!typedForm.is_active && (
-                    <Badge color="red" variant="light">Inactive</Badge>
-                  )}
-                </Group>
+        <Divider my="xl" />
 
-                <Text size="sm" c="dimmed" mb="xl" lineClamp={2} style={{ flex: 1 }}>
-                  {typedForm.description || 'No description provided.'}
-                </Text>
+        <Group justify="flex-end">
+          <Button
+            size="lg"
+            radius="md"
+            leftSection={<IconDeviceFloppy size={20} />}
+            loading={isSaving}
+            onClick={handleSaveConfig}
+          >
+            Save Configuration
+          </Button>
+        </Group>
 
-                <Divider variant="dashed" mb="md" />
-
-                <Group justify="space-between" mb="lg">
-                  <Group gap={8}>
-                    <Tooltip label="Creation Date">
-                      <ThemeIcon variant="transparent" color="gray" size="sm">
-                        <IconCalendar size={14} />
-                      </ThemeIcon>
-                    </Tooltip>
-                    <Text size="xs" fw={700} c="dimmed">
-                      {new Date(typedForm.created_at).toLocaleDateString()}
-                    </Text>
-                  </Group>
-                  <Badge variant="outline" color="gray" radius="sm">v{typedForm.version}</Badge>
-                </Group>
-
-                <Group gap="sm">
-                  <Button
-                    flex={1}
-                    variant="light"
-                    radius="md"
-                    loading={isFetchingDetails && (editingForm as FormSchema | null)?.id === typedForm.id}
-                    leftSection={<IconEdit size={16} />}
-                    onClick={() => handleEditClick(typedForm.id)}
-                  >
-                    Edit
-                  </Button>
-                  <ActionIcon
-                    variant="light"
-                    color="red"
-                    size="lg"
-                    radius="md"
-                    onClick={() => handleDeleteForm(typedForm.id)}
-                  >
-                    <IconTrash size={18} />
-                  </ActionIcon>
-                </Group>
-              </Paper>
-            );
-            })}
-          </SimpleGrid>
-        )}
-      </Stack>
+      </Paper>
     </Container>
   );
 };

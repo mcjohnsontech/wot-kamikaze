@@ -237,7 +237,6 @@ const AuthPage: React.FC = () => {
               <Text c="dimmed" size="sm" ta="center">
                 {isLogin ? "New to WOT?" : "Already have an account?"}{' '}
                 <Anchor
-                  component="button"
                   size="sm"
                   fw={700}
                   onClick={() => {

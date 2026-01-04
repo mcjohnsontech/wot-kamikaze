@@ -2,7 +2,16 @@ import twilio from 'twilio';
 import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 
-dotenv.config({ path: './server/.env' });
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Try loading from multiple locations to be robust
+dotenv.config({ path: path.join(__dirname, '../../.env') }); // Root if running from server/services
+dotenv.config({ path: path.join(__dirname, '../.env') });    // Server dir
+dotenv.config(); // CWD
 
 // Initialize Twilio client (for fallback)
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -102,7 +111,9 @@ export async function sendWhatsAppMessage(
     }
 
     // Check for SME-specific WhatsApp config
-    let fromPhoneNumber = twilioPhoneNumber;
+    // Ensure twilioPhoneNumber is a string before calling replace
+    const defaultTwilioPhone = twilioPhoneNumber || '';
+    let fromPhoneNumber = defaultTwilioPhone.replace('whatsapp:', '');
     let useCustomProvider = false;
 
     if (payload.smeId && supabase) {
@@ -116,7 +127,7 @@ export async function sendWhatsAppMessage(
         if (!configError && config && config.is_connected) {
           useCustomProvider = true;
           if (config.provider === 'twilio' && config.provider_config?.twilioPhoneNumber) {
-            fromPhoneNumber = config.provider_config.twilioPhoneNumber;
+            fromPhoneNumber = config.provider_config.twilioPhoneNumber.replace('whatsapp:', '');
             console.log(`[WhatsApp] Using SME-specific Twilio config for ${payload.smeId}`);
           } else if (config.provider === 'baileys' || config.provider === 'evolution') {
             // TODO: Implement Baileys/Evolution provider when library is integrated

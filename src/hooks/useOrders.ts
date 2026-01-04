@@ -7,30 +7,33 @@ import { supabase } from '../lib/supabase';
  */
 export const useOrders = (smeId: string) => {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchOrders = useCallback(async () => {
+    if (!smeId) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const { data, error: fetchError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('sme_id', smeId)
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+      setOrders(data || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch orders');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [smeId]);
+
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        setIsLoading(true);
-        const { data, error: fetchError } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('sme_id', smeId)
-          .order('created_at', { ascending: false });
-
-        if (fetchError) throw fetchError;
-        setOrders(data || []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch orders');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (!smeId) return;
-
     // Fetch initial data
     fetchOrders();
 
@@ -48,7 +51,10 @@ export const useOrders = (smeId: string) => {
         (payload) => {
           // Handle INSERT
           if (payload.eventType === 'INSERT') {
-            setOrders((prev) => [payload.new as Order, ...prev]);
+            setOrders((prev) => {
+              if (prev.some((o) => o.id === payload.new.id)) return prev;
+              return [payload.new as Order, ...prev];
+            });
           }
           // Handle UPDATE
           else if (payload.eventType === 'UPDATE') {
@@ -71,9 +77,35 @@ export const useOrders = (smeId: string) => {
     return () => {
       channel.unsubscribe();
     };
-  }, [smeId]);
+  }, [fetchOrders, smeId]);
 
-  return { orders, isLoading, error };
+  // --- Local State Helpers for Seamless UI ---
+  const updateLocalOrder = useCallback((orderId: string, updates: Partial<Order>) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, ...updates } : o))
+    );
+  }, []);
+
+  const insertLocalOrder = useCallback((newOrder: Order) => {
+    setOrders((prev) => {
+      if (prev.some((o) => o.id === newOrder.id)) return prev;
+      return [newOrder, ...prev];
+    });
+  }, []);
+
+  const removeLocalOrder = useCallback((orderId: string) => {
+    setOrders((prev) => prev.filter((o) => o.id !== orderId));
+  }, []);
+
+  return {
+    orders,
+    isLoading,
+    error,
+    refreshOrders: fetchOrders,
+    updateLocalOrder,
+    insertLocalOrder,
+    removeLocalOrder
+  };
 };
 
 /**
@@ -253,4 +285,61 @@ export const useAssignRider = (orderId: string) => {
   );
 
   return { assignRider, isAssigning, error };
+};
+
+/**
+ * Hook to delete an order
+ */
+export const useDeleteOrder = () => {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const deleteOrder = useCallback(async (orderId: string) => {
+    try {
+      setIsDeleting(true);
+      const { error: deleteError } = await supabase
+        .from('orders')
+        .delete()
+        .eq('id', orderId);
+
+      if (deleteError) throw deleteError;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete order');
+      throw err;
+    } finally {
+      setIsDeleting(false);
+    }
+  }, []);
+
+  return { deleteOrder, isDeleting, error };
+};
+
+/**
+ * Hook to update an existing order
+ */
+export const useUpdateOrder = () => {
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const updateOrder = useCallback(async (orderId: string, updates: Partial<Order>) => {
+    try {
+      setIsUpdating(true);
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', orderId);
+
+      if (updateError) throw updateError;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update order');
+      throw err;
+    } finally {
+      setIsUpdating(false);
+    }
+  }, []);
+
+  return { updateOrder, isUpdating, error };
 };

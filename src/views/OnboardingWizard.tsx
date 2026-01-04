@@ -15,18 +15,9 @@ import FormBuilder from '../components/FormBuilder';
 import AuthHeader from '../components/AuthHeader';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import type { FormField } from '../types';
 
-interface FormField {
-  field_key: string;
-  label: string;
-  type: 'text' | 'number' | 'select' | 'checkbox' | 'textarea' | 'email' | 'phone' | 'date';
-  required: boolean;
-  placeholder?: string;
-  help_text?: string;
-  options?: Array<{ label: string; value: string }>;
-  validation?: any;
-  logic?: any;
-}
+
 
 interface FormSchema {
   name: string;
@@ -77,7 +68,7 @@ const OnboardingWizard: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
 
   const handleFormSave = async (name: string, description: string, fields: FormField[], brandColor: string) => {
     setIsLoading(true);
@@ -90,7 +81,7 @@ const OnboardingWizard: React.FC = () => {
         brand_color: brandColor,
       };
       setFormSchema(schema);
-      
+
       // Save form schema to backend
       const response = await fetch(`${API_BASE_URL}/forms`, {
         method: 'POST',

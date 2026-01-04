@@ -15,14 +15,7 @@ import {
 } from '@mantine/core';
 import { IconDeviceFloppy, IconTrash } from '@tabler/icons-react';
 
-interface FormField {
-    field_key: string;
-    label: string;
-    type: string;
-    required: boolean;
-    placeholder?: string;
-    options?: any[];
-}
+import type { FormField } from '../types';
 
 interface FormBuilderProps {
     initialName: string;

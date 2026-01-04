@@ -17,6 +17,7 @@ import {
   IconTruckDelivery, IconMapPin, IconUser, IconPhone, IconCurrencyNaira, IconClipboardList, IconSearch,
   IconEdit, IconTrash,
 } from '@tabler/icons-react';
+import TestModeBanner from '../components/TestModeBanner';
 
 // --- Default Order Form Component ---
 // This component handles the rendering of the optional fields based on config
@@ -573,6 +574,7 @@ const SmeDashboard: React.FC = () => {
   return (
     <Container size="xl" py="xl">
       <AuthHeader title="WOT Dashboard" />
+      <TestModeBanner />
       {/* Modern Stats Grid */}
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="lg" mb="xl">
         <Paper withBorder p="md" radius="md">

@@ -17,12 +17,12 @@ import {
   rem,
   Anchor,
 } from '@mantine/core';
-import { 
-  IconAlertCircle, 
-  IconCheck, 
-  IconAt, 
-  IconLock, 
-  IconRocket, 
+import {
+  IconAlertCircle,
+  IconCheck,
+  IconAt,
+  IconLock,
+  IconRocket,
   IconMailOpened,
   IconArrowLeft
 } from '@tabler/icons-react';
@@ -86,7 +86,7 @@ const AuthPage: React.FC = () => {
           name: (user?.user_metadata as any)?.name || user?.email || 'SME',
         });
         const hasOnboarded = user?.user_metadata?.onboarded;
-        navigate(hasOnboarded ? '/sme' : '/onboarding', { replace: true });
+        navigate('/sme', { replace: true });
       } else {
         const { data, error: authError } = await supabase.auth.signUp({
           email,
@@ -111,7 +111,7 @@ const AuthPage: React.FC = () => {
           id: user?.id ?? 'unknown',
           name: (user?.user_metadata as any)?.name || user?.email || 'SME',
         });
-        navigate('/onboarding', { replace: true });
+        navigate('/sme', { replace: true });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed.');
@@ -167,24 +167,24 @@ const AuthPage: React.FC = () => {
                 <IconMailOpened size={44} />
               </ThemeIcon>
               <Text ta="center" size="sm" c="dimmed">
-                We've sent a magic link to <Text span fw={700} c="dark">{email}</Text>. 
+                We've sent a magic link to <Text span fw={700} c="dark">{email}</Text>.
                 Please click the link in the email to activate your account.
               </Text>
-              
-              <Button 
-                variant="light" 
-                fullWidth 
-                onClick={handleResendVerification} 
+
+              <Button
+                variant="light"
+                fullWidth
+                onClick={handleResendVerification}
                 loading={isProcessing}
                 radius="md"
               >
                 Resend verification email
               </Button>
 
-              <Button 
-                variant="subtle" 
-                color="gray" 
-                size="xs" 
+              <Button
+                variant="subtle"
+                color="gray"
+                size="xs"
                 leftSection={<IconArrowLeft size={14} />}
                 onClick={() => {
                   setVerificationPending(false);
@@ -216,13 +216,13 @@ const AuthPage: React.FC = () => {
                     leftSection={<IconLock size={16} stroke={1.5} />}
                     radius="md"
                   />
-                  
-                  <Button 
-                    type="submit" 
-                    fullWidth 
-                    mt="md" 
-                    size="md" 
-                    radius="md" 
+
+                  <Button
+                    type="submit"
+                    fullWidth
+                    mt="md"
+                    size="md"
+                    radius="md"
                     loading={isProcessing}
                     variant="gradient"
                     gradient={{ from: 'indigo', to: 'cyan' }}

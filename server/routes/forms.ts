@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import { authenticateUser } from '../middleware/auth.js';
 
 dotenv.config({ path: './server/.env' });
 
@@ -19,14 +20,10 @@ const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
  * POST /api/forms
  * Create a new form schema
  */
-router.post('/forms', async (req: Request, res: Response) => {
+router.post('/forms', authenticateUser, async (req: Request, res: Response) => {
   try {
     const { name, description, fields } = req.body;
-    const smeId = req.headers['x-sme-id'] as string;
-
-    if (!smeId) {
-      return res.status(401).json({ success: false, error: 'SME ID not provided' });
-    }
+    const smeId = req.user!.id; // Guaranteed by middleware
 
     if (!name) {
       return res.status(400).json({ success: false, error: 'Form name is required' });
@@ -119,26 +116,50 @@ router.get('/forms/:id', async (req: Request, res: Response) => {
  * GET /api/forms
  * Fetch all form schemas for the SME
  */
-router.get('/forms', async (req: Request, res: Response) => {
+router.get('/forms', authenticateUser, async (req: Request, res: Response) => {
   try {
-    const smeId = req.headers['x-sme-id'] as string;
+    const smeId = req.user!.id;
 
-    if (!smeId) {
-      return res.status(401).json({ success: false, error: 'SME ID not provided' });
-    }
-
-    const { data: schemas, error } = await supabase
+    // Fetch schemas
+    const { data: schemas, error: schemasError } = await supabase
       .from('form_schemas')
       .select('*')
       .eq('sme_id', smeId)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('[Forms] Fetch error:', error);
+    if (schemasError) {
+      console.error('[Forms] Fetch error:', schemasError);
       return res.status(500).json({ success: false, error: 'Failed to fetch forms' });
     }
 
-    return res.json({ success: true, schemas: schemas || [] });
+    if (!schemas || schemas.length === 0) {
+      return res.json({ success: true, schemas: [] });
+    }
+
+    // specific hack: we're only really using one form right now effectively, but let's be proper
+    // Fetch all fields for these schemas
+    const schemaIds = schemas.map(s => s.id);
+    const { data: allFields, error: fieldsError } = await supabase
+      .from('form_fields')
+      .select('*')
+      .in('schema_id', schemaIds)
+      .order('field_order', { ascending: true });
+
+    if (fieldsError) {
+      console.error('[Forms] Fields fetch error:', fieldsError);
+      // We can still return schemas but maybe warn? For now let's fail safe 
+      // and return schemas without fields if this fails, or strict error?
+      // Let's just log and return schemas empty? No, better to fail so we know.
+      // Actually, let's just proceed with empty fields map if error to avoid total blockage
+    }
+
+    // Attach fields to schemas
+    const schemasWithFields = schemas.map(schema => {
+      const schemaFields = allFields?.filter(field => field.schema_id === schema.id) || [];
+      return { ...schema, fields: schemaFields };
+    });
+
+    return res.json({ success: true, schemas: schemasWithFields });
   } catch (error) {
     console.error('[Forms GET List Error]', error);
     return res.status(500).json({ success: false, error: 'Internal server error' });
@@ -149,15 +170,11 @@ router.get('/forms', async (req: Request, res: Response) => {
  * PUT /api/forms/:id
  * Update a form schema and fields
  */
-router.put('/forms/:id', async (req: Request, res: Response) => {
+router.put('/forms/:id', authenticateUser, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, description, fields } = req.body;
-    const smeId = req.headers['x-sme-id'] as string;
-
-    if (!smeId) {
-      return res.status(401).json({ success: false, error: 'SME ID not provided' });
-    }
+    const smeId = req.user!.id;
 
     // Verify ownership
     const { data: schema, error: fetchError } = await supabase
@@ -221,14 +238,10 @@ router.put('/forms/:id', async (req: Request, res: Response) => {
  * DELETE /api/forms/:id
  * Soft-delete (deactivate) a form schema
  */
-router.delete('/forms/:id', async (req: Request, res: Response) => {
+router.delete('/forms/:id', authenticateUser, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const smeId = req.headers['x-sme-id'] as string;
-
-    if (!smeId) {
-      return res.status(401).json({ success: false, error: 'SME ID not provided' });
-    }
+    const smeId = req.user!.id;
 
     // Verify ownership
     const { data: schema, error: fetchError } = await supabase

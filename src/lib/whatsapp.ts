@@ -10,6 +10,7 @@ export interface WhatsAppMessagePayload {
   message: string;
   orderId: string;
   mediaUrl?: string;
+  smeId?: string;
 }
 
 export interface WhatsAppLog {

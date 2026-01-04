@@ -14,11 +14,9 @@ const CsatSubmission: React.FC = () => {
   const [comment, setComment] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = async (selectedScore: number) => {
-    if (!order?.id) return;
-
-    setScore(selectedScore);
-    await submit(selectedScore, comment);
+  const handleSubmit = async () => {
+    if (!order?.id || score === null) return;
+    await submit(score, comment);
     setIsSubmitted(true);
   };
 
@@ -54,8 +52,8 @@ const CsatSubmission: React.FC = () => {
               Your feedback has been recorded. We appreciate your business and look forward to serving you again!
             </Text>
           </Stack>
-          <Button onClick={() => navigate('/')} color="green" fullWidth>
-            Close
+          <Button color="green" fullWidth variant="light" onClick={() => window.close()}>
+            You can close this tab
           </Button>
         </Stack>
       </Center>
@@ -76,10 +74,9 @@ const CsatSubmission: React.FC = () => {
         {/* Score Selection */}
         <Stack gap="md" mb="xl">
           <Button
-            onClick={() => handleSubmit(5)}
-            disabled={isSubmitting}
-            variant="gradient"
-            gradient={{ from: 'green', to: 'teal' }}
+            onClick={() => setScore(5)}
+            variant={score === 5 ? 'filled' : 'light'}
+            color="teal"
             size="lg"
             leftSection="⭐"
             fullWidth
@@ -88,10 +85,9 @@ const CsatSubmission: React.FC = () => {
           </Button>
 
           <Button
-            onClick={() => handleSubmit(3)}
-            disabled={isSubmitting}
-            variant="gradient"
-            gradient={{ from: 'orange', to: 'amber' }}
+            onClick={() => setScore(3)}
+            variant={score === 3 ? 'filled' : 'light'}
+            color="orange"
             size="lg"
             leftSection="⚠️"
             fullWidth
@@ -100,7 +96,7 @@ const CsatSubmission: React.FC = () => {
           </Button>
         </Stack>
 
-        {/* Comment Section */}
+        {/* Comment Section & Submit */}
         {score !== null && !isSubmitted && (
           <Stack gap="md" mb="xl" style={{ borderTop: '1px solid var(--mantine-color-gray-2)', paddingTop: 'var(--mantine-spacing-lg)' }}>
             <Text fw={500} size="sm">
@@ -112,6 +108,15 @@ const CsatSubmission: React.FC = () => {
               placeholder="Your feedback helps us improve..."
               rows={4}
             />
+            <Button
+              onClick={handleSubmit}
+              loading={isSubmitting}
+              size="lg"
+              radius="md"
+              fullWidth
+            >
+              Submit Feedback
+            </Button>
           </Stack>
         )}
 

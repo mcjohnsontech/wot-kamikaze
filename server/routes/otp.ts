@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
-import { sendWhatsAppWithRetry } from '../services/whatsapp.js';
+import { sendWhatsAppWithRetry, getOrderStatusMessage } from '../services/whatsapp.js';
 import { createRateLimiter } from '../middleware/rateLimiter.js';
 
 dotenv.config({ path: './server/.env' });
@@ -156,14 +156,37 @@ router.post('/orders/:orderId/otp/verify', otpVerifyRateLimiter, async (req: Req
     }
 
     // OTP valid - mark order as COMPLETED
-    const { error: updateOrderError } = await supabase
+    const { data: updatedOrder, error: updateOrderError } = await supabase
       .from('orders')
       .update({ status: 'COMPLETED', updated_at: new Date().toISOString() })
-      .eq('id', orderId);
+      .eq('id', orderId)
+      .select('id, customer_phone, readable_id, sme_id, rider_token')
+      .single();
 
     if (updateOrderError) {
       console.error('[OTP] Failed to update order status', updateOrderError);
       return res.status(500).json({ success: false, error: 'Failed to update order status' });
+    }
+
+    // Send confirmation WhatsApp message
+    if (updatedOrder && updatedOrder.customer_phone) {
+      try {
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const csatUrl = updatedOrder.rider_token
+          ? `${frontendUrl}/csat/${updatedOrder.rider_token}`
+          : undefined;
+
+        const message = getOrderStatusMessage('COMPLETED', updatedOrder.readable_id, csatUrl);
+        await sendWhatsAppWithRetry({
+          phone: updatedOrder.customer_phone,
+          message,
+          orderId: updatedOrder.id,
+          smeId: updatedOrder.sme_id
+        });
+      } catch (waError) {
+        console.warn('[OTP] Failed to send completion WhatsApp', waError);
+        // Don't fail the request as main action succeeded
+      }
     }
 
     // Invalidate OTP record

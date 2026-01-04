@@ -26,7 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Function to simulate login (storing token)
   const login = useCallback((token: string, userInfo?: { id: string; name: string }) => {
-    localStorage.setItem(MOCK_TOKEN_KEY, token);
+    localStorage.setItem(MOCK_TOKEN_KEY, token); // Store the ACTUAL token
     setIsAuthenticated(true);
     if (userInfo) setUser(userInfo);
     else setUser({ id: MOCK_USER_ID, name: MOCK_USER_NAME });

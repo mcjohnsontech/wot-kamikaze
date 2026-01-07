@@ -2,10 +2,9 @@ import { Router, Request, Response } from "express";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 import Papa from "papaparse";
+import { sendWhatsAppMessage, getOrderStatusMessage } from "../services/whatsapp";
 
 dotenv.config({ path: "./server/.env" });
-
-
 
 const router = Router();
 
@@ -54,18 +53,20 @@ router.post("/csv-mapper", async (req: Request, res: Response) => {
         });
     }
 
-    // Verify SME owns the schema
-    const { data: schema, error: schemaError } = await supabase
-      .from("form_schemas")
-      .select("id")
-      .eq("id", schemaId)
-      .eq("sme_id", smeId)
-      .single();
+    // Verify SME owns the schema (Skip if standard import)
+    if (schemaId !== 'STANDARD_IMPORT') {
+      const { data: schema, error: schemaError } = await supabase
+        .from("form_schemas")
+        .select("id")
+        .eq("id", schemaId)
+        .eq("sme_id", smeId)
+        .single();
 
-    if (schemaError || !schema) {
-      return res
-        .status(403)
-        .json({ success: false, error: "Schema not found or unauthorized" });
+      if (schemaError || !schema) {
+        return res
+          .status(403)
+          .json({ success: false, error: "Schema not found or unauthorized" });
+      }
     }
 
     // Parse CSV using PapaParse
@@ -85,32 +86,40 @@ router.post("/csv-mapper", async (req: Request, res: Response) => {
 
     const rows = parsed.data as any[];
 
-    // Map CSV rows to form data using columnMapping
-    // const mappedRows = rows.map((row) => {
-    //   const mappedData: Record<string, any> = {};
-
-    //   for (const [csvCol, formField] of Object.entries(columnMapping)) {
-    //     if (row[csvCol] !== undefined && row[csvCol] !== null && row[csvCol] !== '') {
-    //       mappedData[formField as string] = row[csvCol];
-    //     }
-    //   }
-
-    //   return mappedData;
-    // });
-
+    // Map CSV rows to Order Stucture
     const mappedRows = rows.map((row) => {
-      const mappedData: Record<string, any> = {};
-
-      // Get all possible keys from your column mapping
-      for (const formField of Object.values(columnMapping)) {
-        // If CSV has the data, use it; otherwise, explicitly set to null
-        const csvKey = Object.keys(columnMapping).find(
-          (key) => columnMapping[key] === formField
-        );
-        mappedData[formField] = csvKey && row[csvKey] ? row[csvKey] : null;
+      // 1. Identify Core Fields 
+      // Logic: Find which CSV column map to 'customer_name', etc.
+      const getMappedValue = (targetKey: string) => {
+        const csvHeaderName = Object.keys(columnMapping).find(key => columnMapping[key] === targetKey);
+        return csvHeaderName && row[csvHeaderName] !== undefined ? row[csvHeaderName] : null;
       }
 
-      return mappedData;
+      const customer_name = getMappedValue('customer_name');
+      const customer_phone = getMappedValue('customer_phone');
+      const delivery_address = getMappedValue('delivery_address');
+      const price_total = Number(getMappedValue('price_total') || 0);
+
+      // 2. Identify Custom Fields (Everything else)
+      const customData: Record<string, any> = {};
+      const systemKeys = ['customer_name', 'customer_phone', 'delivery_address', 'price_total'];
+
+      // Iterate over the mapping. If the target field is NOT a system key, it's custom data.
+      Object.entries(columnMapping).forEach(([csvHeader, targetField]) => {
+        if (!systemKeys.includes(targetField as string) && row[csvHeader] !== undefined) {
+          // If we mapped it to a custom key, use it
+          customData[targetField as string] = row[csvHeader];
+        }
+      });
+
+      return {
+        customer_name,
+        customer_phone,
+        delivery_address,
+        price_total,
+        form_data: customData, // JSONB bucket
+        original_row: row // Keep for debugging if needed
+      };
     });
 
     // If preview mode, just return the mapped data
@@ -123,86 +132,63 @@ router.post("/csv-mapper", async (req: Request, res: Response) => {
       });
     }
 
-    // Import mode: create orders or form responses
-    // if (importMode === 'import') {
-    //   const results = [];
-    //   let successCount = 0;
-    //   let failCount = 0;
-
-    //   for (const mappedData of mappedRows) {
-    //     try {
-    //       // Insert form response (assumes order already exists or will be created)
-    //       // For now, we just store the form response data
-    //       const { data: response, error: insertError } = await supabase
-    //         .from('form_responses')
-    //         .insert([
-    //           {
-    //             schema_id: schemaId,
-    //             sme_id: smeId,
-    //             response_data: mappedData,
-    //           },
-    //         ])
-    //         .select()
-    //         .single();
-
-    //       if (insertError) {
-    //         failCount += 1;
-    //         results.push({
-    //           row: mappedData,
-    //           success: false,
-    //           error: insertError.message,
-    //         });
-    //       } else {
-    //         successCount += 1;
-    //         results.push({
-    //           row: mappedData,
-    //           success: true,
-    //           responseId: response.id,
-    //         });
-    //       }
-    //     } catch (rowError) {
-    //       failCount += 1;
-    //       results.push({
-    //         row: mappedData,
-    //         success: false,
-    //         error: rowError instanceof Error ? rowError.message : 'Unknown error',
-    //       });
-    //     }
-    //   }
-
-    //   return res.json({
-    //     success: true,
-    //     message: `Imported ${successCount} rows, ${failCount} failed`,
-    //     successCount,
-    //     failCount,
-    //     results: results.slice(0, 10), // Return first 10 result details
-    //   });
-    // }
     if (importMode === "import") {
-      // 1. Prepare the array for bulk insert
-      const dataToInsert = mappedRows.map((mappedData) => ({
-        schema_id: schemaId,
+      // 1. Filter out invalid rows (missing required name/phone?) - Optional, but let's be safe
+      const validRows = mappedRows.filter(r => r.customer_name && r.customer_phone);
+
+      if (validRows.length === 0) {
+        return res.status(400).json({ success: false, error: "No valid rows found. Ensure Name and Phone are mapped." });
+      }
+
+      // 2. Prepare the array for bulk insert into ORDERS table
+      const timestamp = Date.now().toString().slice(-6);
+
+      const ordersToInsert = validRows.map((data, idx) => ({
         sme_id: smeId,
-        response_data: mappedData,
+        readable_id: `BLK${timestamp}${idx}`, // Unique-ish ID
+        status: 'NEW',
+        customer_name: data.customer_name,
+        customer_phone: data.customer_phone,
+        delivery_address: data.delivery_address || 'Imported Address', // Fallback
+        price_total: data.price_total,
+        form_data: data.form_data,
+        created_at: new Date().toISOString()
       }));
 
-      // 2. Perform ONE bulk insert
+      // 3. Perform ONE bulk insert
       const { data, error: insertError } = await supabase
-        .from("form_responses")
-        .insert(dataToInsert)
+        .from("orders")
+        .insert(ordersToInsert)
         .select();
 
       if (insertError) {
         console.error("[CSV Import] Bulk insert error:", insertError);
         return res
           .status(500)
-          .json({ success: false, error: "Failed to bulk import records" });
+          .json({ success: false, error: "Failed to bulk import orders: " + insertError.message });
+      }
+
+      // 4. Send WhatsApp Notifications (Fire and Forget)
+      if (data && data.length > 0) {
+        // We use Promise.allSettled to ensure all messages are attempted even if some fail
+        // Using `void` to explicitly ignore the promise so we don't wait for it
+        void Promise.allSettled(data.map(async (order: any) => {
+          if (order.customer_phone) {
+            const messageText = getOrderStatusMessage('NEW', order.readable_id);
+            await sendWhatsAppMessage({
+              phone: order.customer_phone,
+              message: messageText,
+              orderId: order.id,
+              smeId: smeId
+            });
+          }
+        }));
       }
 
       return res.json({
         success: true,
-        message: `Successfully imported ${dataToInsert.length} rows`,
-        successCount: dataToInsert.length,
+        message: `Successfully created ${ordersToInsert.length} orders`,
+        successCount: ordersToInsert.length,
       });
     }
 

@@ -1,6 +1,13 @@
 import React, { useState, useRef } from "react";
-import { Container, Card, Title, Text, Group, Stack, Button, Select, Loader, Center, Alert } from "@mantine/core";
-import { IconUpload, IconChevronDown, IconAlertCircle, IconCheck } from "@tabler/icons-react";
+import {
+  Title, Text, Group, Stack, Button, Select, Loader, Center,
+  Alert, Paper, Table, ScrollArea, ActionIcon,
+  Timeline, Tooltip, Badge, ThemeIcon
+} from "@mantine/core";
+import {
+  IconUpload, IconCheck, IconX, IconFileTypeCsv,
+  IconArrowRight, IconTable, IconDatabaseImport
+} from "@tabler/icons-react";
 import Papa from "papaparse";
 import { useAuth } from "../context/AuthContext";
 
@@ -22,26 +29,20 @@ const CSVMapper: React.FC<CSVMapperProps> = ({
   schemaId,
   formFields,
   onImportComplete,
-  isLoading = false,
+  isLoading: parentLoading = false,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [csvContent, setCsvContent] = useState<string>("");
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
-  const [columnMapping, setColumnMapping] = useState<Record<string, string>>(
-    {}
-  );
+  const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
   const [previewData, setPreviewData] = useState<any[]>([]);
-  const [step, setStep] = useState<
-    "upload" | "mapping" | "preview" | "importing"
-  >("upload");
+  const [step, setStep] = useState<"upload" | "mapping" | "preview" | "importing">("upload");
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const API_BASE_URL =
-    import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
   const { user } = useAuth();
   const smeId = user?.id || "";
-  // const smeId = localStorage.getItem('sme_id') || ''; // Assumes SME ID stored in localStorage
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -50,76 +51,64 @@ const CSVMapper: React.FC<CSVMapperProps> = ({
       setError("You must be logged in as an SME to import data.");
       return;
     }
-    
 
     setError(null);
+    setSuccessMessage(null);
 
     Papa.parse(file, {
-      header: true, // Uses first row as keys
-      skipEmptyLines: true, // Ignores blank rows at end of file
+      header: true,
+      skipEmptyLines: true,
       complete: async (results) => {
         if (results.data.length === 0) {
           setError("The CSV file appears to be empty.");
           return;
         }
 
-        // Store headers found in the CSV
-        setCsvHeaders(results.meta.fields || []);
-
-        // We still need the raw text to send to your backend
-        // (Assuming backend uses a CSV parser too)
+        const headers = results.meta.fields || [];
+        setCsvHeaders(headers);
         const rawCsvText = Papa.unparse(results.data);
         setCsvContent(rawCsvText);
 
-        // Auto-detect column mappings
-        try {
-          const response = await fetch(
-            `${API_BASE_URL}/csv-mapper/auto-detect`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "x-sme-id": smeId,
-              },
-              body: JSON.stringify({ csvData: rawCsvText, schemaId }),
+        // Auto-detect mappings
+        const newMapping: Record<string, string> = {};
+        const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+        headers.forEach(header => {
+          const h = normalize(header);
+          if (['name', 'customername', 'fullname', 'receiver'].includes(h)) newMapping[header] = 'customer_name';
+          if (['phone', 'phonenumber', 'mobile', 'contact', 'cell'].includes(h)) newMapping[header] = 'customer_phone';
+          if (['address', 'deliveryaddress', 'location', 'destination'].includes(h)) newMapping[header] = 'delivery_address';
+          if (['amount', 'price', 'total', 'cost', 'value'].includes(h)) newMapping[header] = 'price_total';
+
+          // Custom field heuristics
+          formFields.forEach(ff => {
+            if (h.includes(normalize(ff.label)) && !newMapping[header]) {
+              newMapping[header] = ff.field_key;
             }
-          );
+          });
+        });
 
-          const json = await response.json();
-          if (json.success && json.suggestions) {
-            setColumnMapping(json.suggestions);
-          }
-        } catch (err) {
-          console.warn("Auto-detect failed, manual mapping required");
-        }
-
+        setColumnMapping(newMapping);
         setStep("mapping");
       },
       error: (err) => {
         setError(`Error parsing CSV: ${err.message}`);
       },
     });
-    // ---------------------------------
-  };
-
-  const handleMappingChange = (csvHeader: string, formFieldKey: string) => {
-    setColumnMapping((prev) => ({
-      ...prev,
-      [csvHeader]: formFieldKey || "",
-    }));
   };
 
   const handlePreview = async () => {
     setError(null);
+
+    // Validation: Ensure required system fields are mapped?
+    // Not strictly forcing it here, but good to check.
+
     setStep("preview");
 
     try {
       const response = await fetch(`${API_BASE_URL}/csv-mapper`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-sme-id": smeId,
-        },
+        headers: { "Content-Type": "application/json", "x-sme-id": smeId },
         body: JSON.stringify({
           csvData: csvContent,
           schemaId,
@@ -149,10 +138,7 @@ const CSVMapper: React.FC<CSVMapperProps> = ({
     try {
       const response = await fetch(`${API_BASE_URL}/csv-mapper`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-sme-id": smeId,
-        },
+        headers: { "Content-Type": "application/json", "x-sme-id": smeId },
         body: JSON.stringify({
           csvData: csvContent,
           schemaId,
@@ -163,24 +149,19 @@ const CSVMapper: React.FC<CSVMapperProps> = ({
 
       const json = await response.json();
       if (json.success) {
-        setSuccessMessage(
-          `✅ Successfully imported ${json.successCount} rows!`
-        );
-        if (onImportComplete) {
-          onImportComplete(json.successCount);
-        }
+        setSuccessMessage(`Successfully imported ${json.successCount} rows!`);
+        if (onImportComplete) onImportComplete(json.successCount);
 
-        // Reset
+        // Reset after delay
         setTimeout(() => {
           setCsvContent("");
           setCsvHeaders([]);
           setColumnMapping({});
           setPreviewData([]);
           setStep("upload");
-          if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-          }
-        }, 2000);
+          if (fileInputRef.current) fileInputRef.current.value = "";
+          setSuccessMessage(null);
+        }, 3000);
       } else {
         setError(json.error || "Import failed");
         setStep("preview");
@@ -191,169 +172,175 @@ const CSVMapper: React.FC<CSVMapperProps> = ({
     }
   };
 
+  const systemFields = formFields.filter(f => ['customer_name', 'customer_phone', 'delivery_address', 'price_total'].includes(f.field_key));
+  const customFields = formFields.filter(f => !['customer_name', 'customer_phone', 'delivery_address', 'price_total'].includes(f.field_key));
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-6 text-white">
-        <h1 className="text-3xl font-bold mb-2">📊 CSV Importer</h1>
-        <p className="text-purple-100">
-          Bulk import order data from spreadsheets
-        </p>
-      </div>
-
-      {/* Step 1: Upload */}
-      {step === "upload" && (
-        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 text-center">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".csv"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl font-bold transition-all text-lg"
-          >
-            <IconUpload size={32} color="var(--mantine-color-blue-4)" />
-            Select CSV File
-          </button>
-          <p className="text-slate-400 mt-4 text-sm">
-            First row should contain column headers. Supported: .csv files
-          </p>
+    <Stack gap="xl">
+      <Group justify="space-between" align="center">
+        <div>
+          <Title order={2}>Upload CSV</Title>
+          <Text c="dimmed">Map your file columns to our system to bulk create orders.</Text>
         </div>
+        <StepIndicator step={step} />
+      </Group>
+
+      {error && (
+        <Alert color="red" icon={<IconX size={16} />} title="Error" withCloseButton onClose={() => setError(null)}>
+          {error}
+        </Alert>
       )}
 
-      {/* Step 2: Column Mapping */}
-      {step === "mapping" && csvHeaders.length > 0 && (
-        <div className="space-y-4">
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6">
-            <h2 className="text-xl font-bold text-white mb-4">
-              📋 Map CSV Columns to Form Fields
-            </h2>
-
-            <div className="space-y-3 mb-6">
-              {csvHeaders.map((header) => (
-                <div key={header} className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-300">
-                      {header}
-                    </p>
-                    <p className="text-xs text-slate-500">CSV Column</p>
-                  </div>
-                  <IconChevronDown className="w-4 h-4 text-slate-500" />
-                  <select
-                    value={columnMapping[header] || ""}
-                    onChange={(e) =>
-                      handleMappingChange(header, e.target.value)
-                    }
-                    className="flex-1 px-3 py-2 bg-slate-900 border border-slate-700 text-white text-sm rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-                  >
-                    <option value="">-- Skip Column --</option>
-                    {formFields.map((field) => (
-                      <option key={field.field_key} value={field.field_key}>
-                        {field.label} ({field.type})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={handlePreview}
-              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-bold transition-all"
-            >
-              Preview Data
-            </button>
-          </div>
-
-          {error && (
-            <div className="bg-red-900/30 border border-red-600 rounded-lg p-4 text-red-300">
-              ⚠️ {error}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Step 3: Preview */}
-      {step === "preview" && previewData.length > 0 && (
-        <div className="space-y-4">
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6">
-            <h2 className="text-xl font-bold text-white mb-4">
-              👁️ Preview Data ({previewData.length} rows)
-            </h2>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="border-b border-slate-600">
-                  <tr>
-                    {Object.keys(previewData[0] || {}).map((key) => (
-                      <th
-                        key={key}
-                        className="text-left px-3 py-2 text-slate-300 font-semibold"
-                      >
-                        {key}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700">
-                  {previewData.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-slate-700/50">
-                      {Object.values(row as any).map((val, colIdx) => (
-                        <td key={colIdx} className="px-3 py-2 text-slate-300">
-                          {String(val).substring(0, 50)}
-                          {String(val).length > 50 ? "..." : ""}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="mt-6 flex gap-3">
-              <button
-                onClick={() => setStep("mapping")}
-                className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold transition-all"
-              >
-                ← Back
-              </button>
-              <button
-                onClick={handleImport}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 text-white rounded-lg font-bold transition-all"
-              >
-                ✅ Import Now
-              </button>
-            </div>
-          </div>
-
-          {error && (
-            <div className="bg-red-900/30 border border-red-600 rounded-lg p-4 text-red-300">
-              ⚠️ {error}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Step 4: Importing */}
-      {step === "importing" && (
-        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 text-center">
-          <Loader className="w-8 h-8 text-purple-500 animate-spin mx-auto mb-4" />
-          <p className="text-white font-semibold">Importing data...</p>
-          <p className="text-slate-400 text-sm mt-2">This may take a moment.</p>
-        </div>
-      )}
-
-      {/* Success Message */}
       {successMessage && (
-        <div className="bg-emerald-900/30 border border-emerald-600 rounded-lg p-4 text-emerald-300">
+        <Alert color="teal" icon={<IconCheck size={16} />} title="Success">
           {successMessage}
-        </div>
+        </Alert>
       )}
-    </div>
+
+      {/* STEP 1: UPLOAD */}
+      {step === "upload" && (
+        <Paper
+          withBorder
+          p={50}
+          radius="md"
+          style={{
+            borderStyle: 'dashed',
+            backgroundColor: 'var(--mantine-color-gray-0)',
+            cursor: 'pointer'
+          }}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <Stack align="center" gap="sm">
+            <ThemeIcon size={60} radius="xl" variant="light" color="blue">
+              <IconUpload size={30} />
+            </ThemeIcon>
+            <Title order={4}>Click to Upload CSV</Title>
+            <Text c="dimmed" size="sm">Supported file type: .csv</Text>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleFileSelect}
+              style={{ display: 'none' }}
+            />
+          </Stack>
+        </Paper>
+      )}
+
+      {/* STEP 2: MAPPING */}
+      {step === "mapping" && (
+        <Stack>
+          <Alert color="blue" icon={<IconDatabaseImport size={16} />}>
+            We found <b>{csvHeaders.length}</b> columns in your file. Please map them to the correct fields below.
+          </Alert>
+
+          <Table withTableBorder withColumnBorders>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Your CSV Column</Table.Th>
+                <Table.Th>Maps To System Field</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {csvHeaders.map(header => (
+                <Table.Tr key={header}>
+                  <Table.Td fw={500}>{header}</Table.Td>
+                  <Table.Td>
+                    <Select
+                      data={[
+                        { group: 'System Fields (Required)', items: systemFields.map(f => ({ value: f.field_key, label: f.label })) },
+                        { group: 'Custom Fields (Optional)', items: customFields.map(f => ({ value: f.field_key, label: f.label })) }
+                      ]}
+                      value={columnMapping[header] || null}
+                      onChange={(val) => setColumnMapping(prev => ({ ...prev, [header]: val || '' }))}
+                      placeholder="Skip this column"
+                      searchable
+                      clearable
+                    />
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+
+          <Group justify="flex-end" mt="md">
+            <Button variant="default" onClick={() => { setStep("upload"); setCsvContent(""); }}>Cancel</Button>
+            <Button onClick={handlePreview} rightSection={<IconArrowRight size={16} />}>Preview Data</Button>
+          </Group>
+        </Stack>
+      )}
+
+      {/* STEP 3: PREVIEW */}
+      {step === "preview" && (
+        <Stack>
+          <Group justify="space-between">
+            <Title order={4}>Preview Import Data</Title>
+            <Badge size="lg" variant="light">{previewData.length} Rows Ready</Badge>
+          </Group>
+
+          <Paper withBorder radius="md" style={{ overflow: 'hidden' }}>
+            <ScrollArea>
+              <Table striped highlightOnHover>
+                <Table.Thead>
+                  <Table.Tr>
+                    {Object.keys(previewData[0] || {}).map((key) => (
+                      <Table.Th key={key} style={{ whiteSpace: 'nowrap' }}>{key}</Table.Th>
+                    ))}
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {previewData.slice(0, 10).map((row, i) => (
+                    <Table.Tr key={i}>
+                      {Object.values(row).map((val: any, j) => (
+                        <Table.Td key={j} style={{ maxWidth: 300 }}>
+                          {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                        </Table.Td>
+                      ))}
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </ScrollArea>
+            {previewData.length > 10 && (
+              <Text ta="center" size="xs" c="dimmed" p="xs">Showing first 10 rows only</Text>
+            )}
+          </Paper>
+
+          <Group justify="flex-end" mt="md">
+            <Button variant="default" onClick={() => setStep("mapping")}>Back to Mapping</Button>
+            <Button size="md" color="green" onClick={handleImport} rightSection={<IconCheck size={16} />}>
+              Complete Import
+            </Button>
+          </Group>
+        </Stack>
+      )}
+
+      {/* STEP 4: LOADING */}
+      {step === "importing" && (
+        <Center p={50}>
+          <Stack align="center">
+            <Loader size="lg" type="dots" />
+            <Text>Importing your orders, please wait...</Text>
+          </Stack>
+        </Center>
+      )}
+    </Stack>
   );
 };
+
+const StepIndicator = ({ step }: { step: string }) => {
+  const steps = ['upload', 'mapping', 'preview', 'importing'];
+  const currentIdx = steps.indexOf(step);
+
+  return (
+    <Group gap="xs">
+      <Badge variant={currentIdx >= 0 ? "filled" : "light"} color={currentIdx >= 0 ? "blue" : "gray"}>1. Upload</Badge>
+      <IconArrowRight size={12} color="gray" />
+      <Badge variant={currentIdx >= 1 ? "filled" : "light"} color={currentIdx >= 1 ? "blue" : "gray"}>2. Map</Badge>
+      <IconArrowRight size={12} color="gray" />
+      <Badge variant={currentIdx >= 2 ? "filled" : "light"} color={currentIdx >= 2 ? "blue" : "gray"}>3. Preview</Badge>
+    </Group>
+  )
+}
 
 export default CSVMapper;

@@ -69,9 +69,16 @@ const TestModeBanner: React.FC = () => {
                                             style={{
                                                 borderTopRightRadius: '6px',
                                                 borderBottomRightRadius: '6px',
-                                                height: '32px', // Match the height of the text box + padding approx
+                                                height: '32px',
                                             }}
                                             px="xs"
+                                            styles={{
+                                                root: {
+                                                    '&:hover': {
+                                                        transform: 'none',
+                                                    },
+                                                },
+                                            }}
                                         >
                                             {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
                                         </Button>

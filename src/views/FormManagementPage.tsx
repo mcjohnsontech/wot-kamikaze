@@ -8,28 +8,16 @@ import {
   Group,
   Stack,
   Button,
-  Switch,
   LoadingOverlay,
   Badge,
-  rem,
   Divider,
   ThemeIcon,
-  Center,
+  Alert,
 } from '@mantine/core';
 import AuthHeader from '../components/AuthHeader';
-import { IconDeviceFloppy, IconSettings } from '@tabler/icons-react';
-
-// Define the available optional fields matching the database/form_data requirement
-const OPTIONAL_FIELDS = [
-  { key: 'email', label: 'Customer Email', type: 'email', description: 'Collect customer email address' },
-  { key: 'alt_phone', label: 'Alternative Phone', type: 'phone', description: 'Backup contact number' },
-  { key: 'landmark', label: 'Nearest Landmark', type: 'text', description: 'Helpful for locating the address' },
-  { key: 'delivery_time', label: 'Preferred Delivery Time', type: 'text', description: 'When the customer wants it delivered' },
-  { key: 'payment_method', label: 'Payment Method', type: 'select', description: 'Cash, Transfer, or POS' },
-  { key: 'item_desc', label: 'Item Description', type: 'textarea', description: 'Details about the package content' },
-  { key: 'quantity', label: 'Quantity', type: 'number', description: 'Number of items' },
-  { key: 'notes', label: 'Delivery Notes', type: 'textarea', description: 'Extra instructions for the rider' },
-];
+import FormBuilder from '../components/FormBuilder';
+import { IconSettings, IconAlertCircle } from '@tabler/icons-react';
+import type { FormField } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -41,8 +29,11 @@ const FormManagementPage: React.FC = () => {
   // Store the ID of the default form to update it, rather than creating new ones
   const [defaultFormId, setDefaultFormId] = useState<string | null>(null);
 
-  // State for which fields are active
-  const [activeFields, setActiveFields] = useState<Record<string, boolean>>({});
+  // Form State
+  const [formName, setFormName] = useState('Default Order Form');
+  const [formDesc, setFormDesc] = useState('Standard delivery form');
+  const [formFields, setFormFields] = useState<FormField[]>([]);
+  const [formColor, setFormColor] = useState('#3b82f6');
 
   useEffect(() => {
     fetchDefaultForm();
@@ -69,22 +60,18 @@ const FormManagementPage: React.FC = () => {
 
       const schemas = json.schemas || [];
       // Find a form named "Default Order Form" or take the first one
-      const existingForm = schemas.find((f: { name: string; id: string; fields: any[] }) => f.name === 'Default Order Form') || schemas[0];
+      const existingForm = schemas.find((f: any) => f.name === 'Default Order Form') || schemas[0];
 
       if (existingForm) {
         setDefaultFormId(existingForm.id);
+        setFormName(existingForm.name);
+        setFormDesc(existingForm.description || '');
+        setFormColor(existingForm.brand_color || '#3b82f6');
 
-        // Parse the existing fields to set active state
-        const currentActive: Record<string, boolean> = {};
+        // Ensure fields are properly typed
         if (existingForm.fields && Array.isArray(existingForm.fields)) {
-          existingForm.fields.forEach((field: any) => {
-            // If the field key exists in our OPTIONAL_FIELDS, mark it as true
-            if (OPTIONAL_FIELDS.some(opt => opt.key === field.field_key)) {
-              currentActive[field.field_key] = true;
-            }
-          });
+          setFormFields(existingForm.fields);
         }
-        setActiveFields(currentActive);
       }
     } catch (error) {
       console.error('Failed to fetch form config:', error);
@@ -93,43 +80,17 @@ const FormManagementPage: React.FC = () => {
     }
   };
 
-  const toggleField = (key: string) => {
-    setActiveFields(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-  };
-
-  const handleSaveConfig = async () => {
+  const handleSaveConfig = async (name: string, description: string, fields: FormField[], color: string) => {
     if (!user?.id) return;
     setIsSaving(true);
     try {
       const token = localStorage.getItem('wot_auth_token');
 
-      // Construct the fields array based on active toggles
-      // We only include the optional fields that are ACTIVE
-      // The fixed compulsory fields are handled by the dashboard UI automatically and don't need to be in this list
-      // BUT for the sake of the API expecting a schema, we'll send the active optional ones.
-
-      const fieldsToSave = OPTIONAL_FIELDS
-        .filter(opt => activeFields[opt.key])
-        .map(opt => ({
-          field_key: opt.key,
-          label: opt.label,
-          type: opt.type,
-          required: false, // Optional fields are... optional
-          options: opt.key === 'payment_method' ? [
-            { label: 'Cash', value: 'cash' },
-            { label: 'Transfer', value: 'transfer' },
-            { label: 'POS', value: 'pos' }
-          ] : []
-        }));
-
       const body = {
-        name: 'Default Order Form',
-        description: 'Standard delivery form with customized optional fields',
-        brand_color: '#3b82f6',
-        fields: fieldsToSave,
+        name,
+        description,
+        brand_color: color,
+        fields,
         is_active: true
       };
 
@@ -152,6 +113,12 @@ const FormManagementPage: React.FC = () => {
         if (!defaultFormId && json.schema?.id) {
           setDefaultFormId(json.schema.id);
         }
+        // Update local state to match saved
+        setFormName(name);
+        setFormDesc(description);
+        setFormFields(fields);
+        setFormColor(color);
+
         alert('Form configuration saved successfully!');
       } else {
         alert('Failed to save configuration.');
@@ -168,66 +135,37 @@ const FormManagementPage: React.FC = () => {
     <Container size="md" py="xl">
       <AuthHeader title="Form Settings" />
 
-      <Paper p="xl" radius="lg" withBorder shadow="sm" pos="relative">
-        <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
+      <Stack gap="xl">
+        <Paper p="xl" radius="lg" withBorder shadow="sm" pos="relative">
+          <Group justify="space-between" mb="md">
+            <div>
+              <Title order={3}>Customize Delivery Form</Title>
+              <Text c="dimmed">Design the exact questions you need specifically for your business.</Text>
+            </div>
+            <ThemeIcon size={40} radius="md" variant="light" color="blue">
+              <IconSettings size={22} />
+            </ThemeIcon>
+          </Group>
 
-        <Group justify="space-between" mb="xl">
-          <div>
-            <Title order={3}>Customize Delivery Form</Title>
-            <Text c="dimmed">Enable the fields you want to appear on your order creation form.</Text>
-          </div>
-          <ThemeIcon size={40} radius="md" variant="light" color="blue">
-            <IconSettings size={22} />
-          </ThemeIcon>
-        </Group>
+          <Alert icon={<IconAlertCircle size={16} />} title="How this works" color="blue" mb="xl">
+            The form below shows what you will see when creating orders.
+            Use the "Add" buttons at the bottom to create new fields like "Gate Code", "Fragile Item?", etc.
+          </Alert>
 
-        <Divider mb="lg" label="Compulsory Fields (Always Visible)" labelPosition="center" />
+          <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
 
-        <Group gap="sm" mb="xl" justify="center">
-          {['Customer Name', 'Phone Number', 'Delivery Address', 'Total Price'].map(field => (
-            <Badge key={field} size="lg" variant="filled" color="gray" leftSection={<IconDeviceFloppy size={12} />}>
-              {field}
-            </Badge>
-          ))}
-        </Group>
-
-        <Divider mb="lg" label="Optional Fields (Toggle On/Off)" labelPosition="center" />
-
-        <Stack gap="lg">
-          {OPTIONAL_FIELDS.map((field) => (
-            <Paper key={field.key} withBorder p="md" radius="md" style={{ borderColor: activeFields[field.key] ? 'var(--mantine-color-blue-3)' : undefined }}>
-              <Group justify="space-between">
-                <div>
-                  <Text fw={700}>{field.label}</Text>
-                  <Text size="sm" c="dimmed">{field.description}</Text>
-                </div>
-                <Switch
-                  size="lg"
-                  onLabel="ON"
-                  offLabel="OFF"
-                  checked={!!activeFields[field.key]}
-                  onChange={() => toggleField(field.key)}
-                />
-              </Group>
-            </Paper>
-          ))}
-        </Stack>
-
-        <Divider my="xl" />
-
-        <Group justify="flex-end">
-          <Button
-            size="lg"
-            radius="md"
-            leftSection={<IconDeviceFloppy size={20} />}
-            loading={isSaving}
-            onClick={handleSaveConfig}
-          >
-            Save Configuration
-          </Button>
-        </Group>
-
-      </Paper>
+          {!isLoading && (
+            <FormBuilder
+              initialName={formName}
+              initialDescription={formDesc}
+              initialFields={formFields}
+              initialColor={formColor}
+              onSave={handleSaveConfig}
+              isLoading={isSaving}
+            />
+          )}
+        </Paper>
+      </Stack>
     </Container>
   );
 };

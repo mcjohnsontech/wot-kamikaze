@@ -36,10 +36,10 @@ const LandingPage: React.FC = () => {
   return (
     <Box bg="white">
       {/* 1. Navbar */}
-      <Box 
-        component="nav" 
-        style={{ 
-          height: rem(70), 
+      <Box
+        component="nav"
+        style={{
+          height: rem(70),
           borderBottom: `${rem(1)} solid var(--mantine-color-gray-2)`,
           position: 'sticky',
           top: 0,
@@ -66,9 +66,9 @@ const LandingPage: React.FC = () => {
       </Box>
 
       {/* 2. Hero Section: The Hook */}
-      <Box 
-        py={rem(100)} 
-        style={{ 
+      <Box
+        py={rem(100)}
+        style={{
           background: `linear-gradient(180deg, var(--mantine-color-blue-0) 0%, white 100%)`,
         }}
       >
@@ -77,8 +77,8 @@ const LandingPage: React.FC = () => {
             <Badge size="lg" variant="light" color="blue" py="md">
               The Amazon Experience for Local Brands
             </Badge>
-            <Title 
-              order={1} 
+            <Title
+              order={1}
               style={{ fontSize: rem(56), fontWeight: 900, lineHeight: 1.1 }}
               maw={800}
             >
@@ -89,7 +89,7 @@ const LandingPage: React.FC = () => {
               WOT automates your post-order conversations. We provide live tracking, automated WhatsApp alerts, and secure delivery codes so you can focus on making sales.
             </Text>
             <Group gap="md">
-              <Button size="xl" radius="md" rightSection={<IconArrowRight size={20}/>} component={Link} to="/auth">
+              <Button size="xl" radius="md" rightSection={<IconArrowRight size={20} />} component={Link} to="/auth">
                 Start for Free
               </Button>
               {/* Stay out for now */}
@@ -130,15 +130,15 @@ const LandingPage: React.FC = () => {
             <Stack>
               <Text fw={700} c="blue">Typical Afternoon for a WOT Merchant:</Text>
               <Group wrap="nowrap" align="flex-start">
-                <ThemeIcon color="green" variant="light" radius="xl"><IconCircleCheck size={16}/></ThemeIcon>
+                <ThemeIcon color="green" variant="light" radius="xl"><IconCircleCheck size={16} /></ThemeIcon>
                 <Text size="sm"><b>12:00 PM:</b> Customer buys. WOT sends instant WhatsApp receipt.</Text>
               </Group>
               <Group wrap="nowrap" align="flex-start">
-                <ThemeIcon color="green" variant="light" radius="xl"><IconCircleCheck size={16}/></ThemeIcon>
+                <ThemeIcon color="green" variant="light" radius="xl"><IconCircleCheck size={16} /></ThemeIcon>
                 <Text size="sm"><b>01:30 PM:</b> Order Ready. WOT sends tracking link. Customer watches rider on map.</Text>
               </Group>
               <Group wrap="nowrap" align="flex-start">
-                <ThemeIcon color="green" variant="light" radius="xl"><IconCircleCheck size={16}/></ThemeIcon>
+                <ThemeIcon color="green" variant="light" radius="xl"><IconCircleCheck size={16} /></ThemeIcon>
                 <Text size="sm"><b>02:00 PM:</b> Secure Delivery. Rider verifies OTP. Order marked complete.</Text>
               </Group>
               <Divider label="Result" labelPosition="center" />
@@ -157,34 +157,34 @@ const LandingPage: React.FC = () => {
           </Stack>
 
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xl">
-            <FeatureCard 
-              icon={IconBrandWhatsapp} 
-              title="WhatsApp Automation" 
-              desc="Automatic status updates sent from your own business number via Twilio or Baileys."
+            <FeatureCard
+              icon={IconBrandWhatsapp}
+              title="WhatsApp Automation"
+              desc="Automatic status updates sent instantly to your customers."
             />
-            <FeatureCard 
-              icon={IconMapPinCheck} 
-              title="Live GPS Tracking" 
+            <FeatureCard
+              icon={IconMapPinCheck}
+              title="Live GPS Tracking"
               desc="Customers watch their rider move in real-time. No more 'Oga where are you?' calls."
             />
-            <FeatureCard 
-              icon={IconShieldCheck} 
-              title="OTP Verification" 
+            <FeatureCard
+              icon={IconShieldCheck}
+              title="OTP Verification"
               desc="Delivery is only complete when the customer gives the rider the secure code. Zero fraud."
             />
-            <FeatureCard 
-              icon={IconDeviceMobile} 
-              title="Rider PWA" 
+            <FeatureCard
+              icon={IconDeviceMobile}
+              title="Rider PWA"
               desc="A lightweight app for riders that works on any smartphone, even with low data."
             />
-            <FeatureCard 
-              icon={IconChartBar} 
-              title="Delivery Analytics" 
+            <FeatureCard
+              icon={IconChartBar}
+              title="Delivery Analytics"
               desc="See your most efficient riders and your busiest delivery zones in one dashboard."
             />
-            <FeatureCard 
-              icon={IconTruckDelivery} 
-              title="Custom Forms" 
+            <FeatureCard
+              icon={IconTruckDelivery}
+              title="Custom Forms"
               desc="Build custom order forms that capture landmarks and delivery specifics perfectly."
             />
           </SimpleGrid>
@@ -193,13 +193,13 @@ const LandingPage: React.FC = () => {
 
       {/* 5. Final CTA */}
       <Container size="md" py={rem(120)}>
-        <Paper 
-          radius="xl" 
-          p={rem(60)} 
-          shadow="xl" 
-          withBorder 
-          style={{ 
-            textAlign: 'center', 
+        <Paper
+          radius="xl"
+          p={rem(60)}
+          shadow="xl"
+          withBorder
+          style={{
+            textAlign: 'center',
             background: `linear-gradient(45deg, var(--mantine-color-blue-7), var(--mantine-color-blue-9))`,
             color: 'white'
           }}

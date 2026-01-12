@@ -7,7 +7,6 @@ import whatsappRouter from './routes/whatsapp.js';
 import otpRouter from './routes/otp.js';
 import formsRouter from './routes/forms.js';
 import csvRouter from './routes/csv.js';
-import whatsappConfigRouter from './routes/whatsappConfig.js';
 import { startOtpCleanupSchedule } from './services/otpCleanup.js';
 import { startRateLimitStoreCleanup } from './middleware/rateLimiter.js';
 dotenv.config({ path: './server/.env' });
@@ -33,8 +32,8 @@ const envFrontend = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [];
 const envFrontendsList = process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',').map(u => u.trim()).filter(Boolean) : [];
 const allowedOrigins = Array.from(new Set([...
   envFrontend,
-  ...envFrontendsList,
-  ...defaultLocalOrigins,
+...envFrontendsList,
+...defaultLocalOrigins,
 ]));
 
 app.use(cors({
@@ -83,8 +82,8 @@ app.get('/health', (req: Request, res: Response) => {
 
 // Routes
 app.use('/api', whatsappRouter);
-app.use('/api', whatsappConfigRouter);
 app.use('/api', otpRouter);
+
 app.use('/api', formsRouter);
 app.use('/api', csvRouter);
 

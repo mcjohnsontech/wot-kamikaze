@@ -21,7 +21,6 @@ const AuthHeader: React.FC<{ title?: string }> = ({ title }) => {
         <Group gap="xs">
           <Tooltip label="Dashboard"><ActionIcon component={Link} to="/sme" variant="light" size="lg"><IconHome size={20} /></ActionIcon></Tooltip>
           <Tooltip label="Manage Forms"><ActionIcon component={Link} to="/forms" variant="light" size="lg"><IconClipboardList size={20} /></ActionIcon></Tooltip>
-          <Tooltip label="WhatsApp Settings"><ActionIcon component={Link} to="/whatsapp" variant="light" size="lg" color="green"><IconMessageCircle size={20} /></ActionIcon></Tooltip>
           <Tooltip label="Import Data"><ActionIcon component={Link} to="/csv-import" variant="light" size="lg"><IconFileUpload size={20} /></ActionIcon></Tooltip>
 
           <Divider orientation="vertical" />

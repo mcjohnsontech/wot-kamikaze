@@ -25,194 +25,14 @@ const HelpPage: React.FC = () => {
           </Stack>
         </Paper>
 
-        {/* Step 1: Twilio Setup */}
-        <Paper withBorder p="xl" radius="lg">
-          <Stack gap="lg">
-            <Group gap="md">
-              <Badge size="lg" variant="filled" color="green">Step 1</Badge>
-              <Title order={2}>Get Your Own Twilio Account</Title>
-            </Group>
-            
-            <Text fw={500}>Why Twilio? It's the industry standard for sending WhatsApp messages reliably.</Text>
-            
-            <Card withBorder p="lg" bg="green.0" radius="md">
-              <Stack gap="md">
-                <Group gap="xs">
-                  <ThemeIcon color="green" variant="light">
-                    <IconCheck size={20} />
-                  </ThemeIcon>
-                  <Text fw={500}>Visit <Text component="span" fw={700} c="green">https://www.twilio.com</Text></Text>
-                </Group>
-                
-                <Group gap="xs">
-                  <ThemeIcon color="green" variant="light">
-                    <IconCheck size={20} />
-                  </ThemeIcon>
-                  <Stack gap={0}>
-                    <Text fw={500}>Sign up for a free account</Text>
-                    <Text size="sm" c="dimmed">You get trial credits to test everything</Text>
-                  </Stack>
-                </Group>
-                
-                <Group gap="xs">
-                  <ThemeIcon color="green" variant="light">
-                    <IconCheck size={20} />
-                  </ThemeIcon>
-                  <Stack gap={0}>
-                    <Text fw={500}>Verify your phone number (for testing)</Text>
-                    <Text size="sm" c="dimmed">Receive a verification code via SMS</Text>
-                  </Stack>
-                </Group>
-                
-                <Group gap="xs">
-                  <ThemeIcon color="green" variant="light">
-                    <IconCheck size={20} />
-                  </ThemeIcon>
-                  <Stack gap={0}>
-                    <Text fw={500}>Find your Account SID and Auth Token</Text>
-                    <Text size="sm" c="dimmed">Located in your Twilio Console dashboard</Text>
-                  </Stack>
-                </Group>
-              </Stack>
-            </Card>
-          </Stack>
-        </Paper>
 
-        {/* Step 2: WhatsApp Business API */}
-        <Paper withBorder p="xl" radius="lg">
-          <Stack gap="lg">
-            <Group gap="md">
-              <Badge size="lg" variant="filled" color="cyan">Step 2</Badge>
-              <Title order={2}>Connect WhatsApp Business Account</Title>
-            </Group>
-            
-            <Alert icon={<IconAlertCircle size={16} />} title="You control everything" color="blue">
-              <Text size="sm">Your customers message YOU directly on your WhatsApp Business number. All messages & notifications come through YOUR account—not ours.</Text>
-            </Alert>
-
-            <Card withBorder p="lg" bg="cyan.0" radius="md">
-              <Stack gap="md">
-                <Group gap="xs">
-                  <ThemeIcon color="cyan" variant="light">
-                    <IconCheck size={20} />
-                  </ThemeIcon>
-                  <Stack gap={0}>
-                    <Text fw={500}>In Twilio Console, go to Messaging → Services</Text>
-                    <Text size="sm" c="dimmed">Create a new Messaging Service</Text>
-                  </Stack>
-                </Group>
-                
-                <Group gap="xs">
-                  <ThemeIcon color="cyan" variant="light">
-                    <IconCheck size={20} />
-                  </ThemeIcon>
-                  <Stack gap={0}>
-                    <Text fw={500}>Add WhatsApp Sender as a channel</Text>
-                    <Text size="sm" c="dimmed">You'll either use your personal WhatsApp number (sandbox) or your official WhatsApp Business Account</Text>
-                  </Stack>
-                </Group>
-                
-                <Group gap="xs">
-                  <ThemeIcon color="cyan" variant="light">
-                    <IconCheck size={20} />
-                  </ThemeIcon>
-                  <Stack gap={0}>
-                    <Text fw={500}>Get your Twilio WhatsApp Sender ID</Text>
-                    <Text size="sm" c="dimmed">This is the phone number that sends messages to customers</Text>
-                  </Stack>
-                </Group>
-
-                <Divider />
-
-                <Box p="md" bg="yellow.0" style={{ borderRadius: 'var(--mantine-radius-md)' }}>
-                  <Group gap="xs">
-                    <Text fw={700} size="sm">🔗 Sandbox vs Production:</Text>
-                  </Group>
-                  <List size="sm" mt="xs" ml="lg">
-                    <List.Item><Text size="sm"><Text fw={500} component="span">Sandbox (Free):</Text> Send to pre-approved test numbers</Text></List.Item>
-                    <List.Item><Text size="sm"><Text fw={500} component="span">Production:</Text> Send to any WhatsApp user (requires business verification)</Text></List.Item>
-                  </List>
-                </Box>
-              </Stack>
-            </Card>
-          </Stack>
-        </Paper>
-
-        {/* Step 3: Connect in WOT */}
-        <Paper withBorder p="xl" radius="lg">
-          <Stack gap="lg">
-            <Group gap="md">
-              <Badge size="lg" variant="filled" color="grape">Step 3</Badge>
-              <Title order={2}>Configure WOT with Your Twilio Credentials</Title>
-            </Group>
-
-            <Card withBorder p="lg" bg="grape.0" radius="md">
-              <Stack gap="md">
-                <Group gap="xs">
-                  <ThemeIcon color="grape" variant="light">
-                    <IconCheck size={20} />
-                  </ThemeIcon>
-                  <Stack gap={0}>
-                    <Text fw={500}>Go to WhatsApp Config</Text>
-                    <Text size="sm" c="dimmed">In the WOT app, click "WhatsApp Setup" from the menu</Text>
-                  </Stack>
-                </Group>
-                
-                <Group gap="xs">
-                  <ThemeIcon color="grape" variant="light">
-                    <IconCheck size={20} />
-                  </ThemeIcon>
-                  <Stack gap={0}>
-                    <Text fw={500}>Select "Twilio (Official)"</Text>
-                    <Text size="sm" c="dimmed">Click the Twilio tab</Text>
-                  </Stack>
-                </Group>
-                
-                <Group gap="xs">
-                  <ThemeIcon color="grape" variant="light">
-                    <IconCheck size={20} />
-                  </ThemeIcon>
-                  <Stack gap={0}>
-                    <Text fw={500}>Enter your Twilio credentials:</Text>
-                    <List size="sm" ml="lg" mt="xs">
-                      <List.Item>Account SID</List.Item>
-                      <List.Item>Auth Token</List.Item>
-                      <List.Item>Twilio Phone Number (WhatsApp sender)</List.Item>
-                    </List>
-                  </Stack>
-                </Group>
-
-                <Group gap="xs">
-                  <ThemeIcon color="grape" variant="light">
-                    <IconCheck size={20} />
-                  </ThemeIcon>
-                  <Stack gap={0}>
-                    <Text fw={500}>Click "Test Connection"</Text>
-                    <Text size="sm" c="dimmed">WOT verifies your Twilio credentials work</Text>
-                  </Stack>
-                </Group>
-
-                <Group gap="xs">
-                  <ThemeIcon color="grape" variant="light">
-                    <IconCheck size={20} />
-                  </ThemeIcon>
-                  <Text fw={500}>✅ You're connected! Start creating orders.</Text>
-                </Group>
-              </Stack>
-            </Card>
-
-            <Alert icon={<IconAlertCircle size={16} />} title="Important" color="orange">
-              <Text size="sm">Your credentials are encrypted and stored securely. We never share them with third parties.</Text>
-            </Alert>
-          </Stack>
-        </Paper>
 
         {/* Step 4: Create & Manage Orders */}
         <Paper withBorder p="xl" radius="lg">
           <Stack gap="lg">
             <Group gap="md">
-              <Badge size="lg" variant="filled" color="teal">Step 4</Badge>
-              <Title order={2}>Create & Manage Orders Independently</Title>
+              <Badge size="lg" variant="filled" color="teal">Step 1</Badge>
+              <Title order={2}>Create & Manage Orders</Title>
             </Group>
 
             <Card withBorder p="lg" bg="teal.0" radius="md">
@@ -420,15 +240,6 @@ const HelpPage: React.FC = () => {
             <Title order={2}>Frequently Asked Questions</Title>
 
             <Accordion defaultValue="q1">
-              <Accordion.Item value="q1">
-                <Accordion.Control>What if I don't have a WhatsApp Business Account?</Accordion.Control>
-                <Accordion.Panel>
-                  <Stack gap="sm">
-                    <Text>You can start with Twilio's WhatsApp sandbox (free). It works perfectly for testing. When ready for production, apply for a WhatsApp Business Account through Meta. Twilio guides you through the process.</Text>
-                  </Stack>
-                </Accordion.Panel>
-              </Accordion.Item>
-
               <Accordion.Item value="q2">
                 <Accordion.Control>Do I own my customer data?</Accordion.Control>
                 <Accordion.Panel>
@@ -443,13 +254,6 @@ const HelpPage: React.FC = () => {
                 </Accordion.Panel>
               </Accordion.Item>
 
-              <Accordion.Item value="q4">
-                <Accordion.Control>What if my Twilio account runs out of credits?</Accordion.Control>
-                <Accordion.Panel>
-                  <Text>WhatsApp messages won't be sent until you add credits. WOT will show an error. Orders stay in the system—you just won't get automated messages. Add credits in your Twilio dashboard immediately.</Text>
-                </Accordion.Panel>
-              </Accordion.Item>
-
               <Accordion.Item value="q5">
                 <Accordion.Control>Can multiple team members use WOT?</Accordion.Control>
                 <Accordion.Panel>
@@ -457,17 +261,10 @@ const HelpPage: React.FC = () => {
                 </Accordion.Panel>
               </Accordion.Item>
 
-              <Accordion.Item value="q6">
-                <Accordion.Control>How do I reset my Twilio connection?</Accordion.Control>
-                <Accordion.Panel>
-                  <Text>Go to WhatsApp Config and delete your Twilio credentials. Then re-enter new ones. Your orders stay intact—only the connection is refreshed.</Text>
-                </Accordion.Panel>
-              </Accordion.Item>
-
               <Accordion.Item value="q7">
                 <Accordion.Control>Is there a cost to use WOT?</Accordion.Control>
                 <Accordion.Panel>
-                  <Text>WOT itself is free. You only pay Twilio for WhatsApp messages (usually ₦5-10 per message in Nigeria). Twilio free tier includes trial credits for testing.</Text>
+                  <Text>WOT itself is free. You only pay for WhatsApp messages sent.</Text>
                 </Accordion.Panel>
               </Accordion.Item>
             </Accordion>

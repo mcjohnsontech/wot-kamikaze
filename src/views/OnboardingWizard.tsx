@@ -34,36 +34,7 @@ const OnboardingWizard: React.FC = () => {
   const [formSchema, setFormSchema] = useState<FormSchema>({
     name: 'Order Form',
     description: 'Collect order details',
-    fields: [
-      {
-        field_key: 'customer_name',
-        label: 'Customer Name',
-        type: 'text',
-        required: true,
-        placeholder: 'Enter customer name',
-      },
-      {
-        field_key: 'customer_phone',
-        label: 'Phone Number',
-        type: 'phone',
-        required: true,
-        placeholder: '+234...',
-      },
-      {
-        field_key: 'delivery_address',
-        label: 'Delivery Address',
-        type: 'text',
-        required: true,
-        placeholder: 'Enter delivery address',
-      },
-      {
-        field_key: 'price_total',
-        label: 'Amount (₦)',
-        type: 'number',
-        required: true,
-        placeholder: '0',
-      },
-    ],
+    fields: [],
     brand_color: '#3b82f6',
   });
   const [isLoading, setIsLoading] = useState(false);

@@ -1,5 +1,15 @@
 @import "tailwindcss";
-
+@font-face {
+  font-family: TomatoGrotesk;
+  src: url('/public/fonts/TomatoGrotesk-Black.otf') format('opentype');
+  src: url('/public/fonts/TomatoGrotesk-BlackSlanted.otf') format('opentype');
+  src: url('/public/fonts/TomatoGrotesk-Medium.otf') format('opentype');
+  src: url('/public/fonts//TomatoGrotesk-MediumSlanted.otf') format('opentype');
+  src: url('/public/fonts/TomatoGrotesk-Medium.otf') format('opentype');
+  /* src: url('/public/fonts/TomatoGrotesk-Thin.otf') format('opentype'); */
+  font-weight: 400 900;
+  font-style: normal;
+}
 :root {
   /* Modern Light Theme with Dark Blue Accents */
   --primary-dark: #1e40af;
@@ -142,4 +152,95 @@ select:focus {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary-dark);
+}
+
+/* Motion-First Design: Scroll & Animation Styles */
+
+/* GPU-accelerated animations */
+.split-text,
+.stacking-section,
+[data-magnetic],
+[data-animate-child] {
+  will-change: transform, opacity;
+}
+
+/* SplitText character animation */
+.split-text [data-char] {
+  display: inline-block;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/* StackingSection stacking effect */
+.stacking-section {
+  position: relative;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Magnetic element interactions */
+[data-magnetic] {
+  position: relative;
+  transform: translate3d(0, 0, 0);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-magnetic]:hover {
+  transform: translate3d(0, -2px, 0);
+}
+
+/* Hairline border helpers */
+.hairline {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.hairline-dark {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Hero section typography */
+.hero-title {
+  font-size: clamp(2.5rem, 8vw, 4rem);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Remove default transitions that conflict with Anime.js */
+* {
+  transition: none !important;
+}
+
+button,
+a,
+[role="button"] {
+  transition: none !important;
+}
+
+/* Feature cards hover effect */
+.feature-card {
+  transform: translate3d(0, 0, 0);
+  backdrop-filter: blur(10px);
+}
+
+.feature-card:hover {
+  transform: translate3d(0, -4px, 0);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Smooth Lenis integration */
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+
+.lenis.lenis-smooth html {
+  scroll-behavior: auto;
+}
+
+.lenis__target {
+  will-change: transform;
 }

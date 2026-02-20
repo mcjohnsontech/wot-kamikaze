@@ -1,7 +1,9 @@
 import React from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider, useAuth } from './context/AuthContext'; 
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Lenis from 'lenis'; 
 
 // Import your main view components
 import SmeDashboard from './views/SmeDashboard';
@@ -24,9 +26,9 @@ const queryClient = new QueryClient();
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   
-  if (isLoading) {
-    return <div className="text-center p-10 text-xl text-blue-600">Loading Application...</div>;
-  }
+  // if (isLoading) {
+  //   return <div className="text-center p-10 text-xl text-blue-600">Loading Application...</div>;
+  // }
 
   if (!isAuthenticated) {
     // Redirect unauthenticated users to the login/signup page
@@ -40,11 +42,11 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 // --- Root Route Wrapper ---
 // Shows landing page if not authenticated, redirects to dashboard if authenticated
 const RootRoute: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated} = useAuth();
   
-  if (isLoading) {
-    return <div className="text-center p-10 text-xl text-blue-600">Loading Application...</div>;
-  }
+  // if (isLoading) {
+  //   return <div className="text-center p-10 text-xl text-blue-600">Loading Application...</div>;
+  // }
 
   if (isAuthenticated) {
     return <Navigate to="/sme" replace />;
@@ -54,6 +56,26 @@ const RootRoute: React.FC = () => {
 };
 
 function App() {
+  // Initialize Lenis for smooth scrolling
+  useEffect(() => {
+    // Only initialize Lenis on client-side
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    });
+
+    const raf = (time: number) => {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    };
+
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider> {/* Wrap the entire application with the Auth Provider */}

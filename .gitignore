@@ -26,6 +26,7 @@ dist-ssr
 
 # Documentation
 docs/
+AI-INSTRUCTIONS.md
 
 # Environment variables
 .env

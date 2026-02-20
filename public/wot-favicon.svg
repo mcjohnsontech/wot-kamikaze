@@ -1,0 +1,23 @@
+<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="wotGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a5fff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0041d9;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Background with rounded corners -->
+  <rect width="128" height="128" rx="24" fill="url(#wotGradient)"/>
+  <!-- Truck delivery icon -->
+  <g transform="translate(64, 64)">
+    <!-- Truck body -->
+    <rect x="-28" y="-8" width="48" height="20" rx="3" fill="white" opacity="0.95"/>
+    <!-- Truck cabin -->
+    <rect x="-32" y="-12" width="14" height="14" rx="2" fill="white" opacity="0.95"/>
+    <!-- Wheels -->
+    <circle cx="-20" cy="14" r="5" fill="white" opacity="0.85"/>
+    <circle cx="16" cy="14" r="5" fill="white" opacity="0.85"/>
+    <!-- Wheel rims -->
+    <circle cx="-20" cy="14" r="3" fill="url(#wotGradient)" opacity="0.6"/>
+    <circle cx="16" cy="14" r="3" fill="url(#wotGradient)" opacity="0.6"/>
+  </g>
+</svg>
